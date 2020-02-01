@@ -4,6 +4,8 @@ Group 50's 4th Year MLP group project.
 
 ## Set-up Conda
 
+**NOTE:** Always say yes if an option is given
+
 1. Download and install conda [here](https://docs.anaconda.com/anaconda/install/)
 2. First create an environment
 
@@ -18,7 +20,7 @@ conda activate mlp-proj
 4. Run the following. Please note, when you add more dependencies add to the `requirements.txt` file 
 
 ````bash
-pip install requirements.txt
+pip install -r requirements.txt
 ````
 
 5. Run the following command to install requirements for MLP cluster.
@@ -27,8 +29,7 @@ pip install requirements.txt
 bash install.sh
 ````
 
-6. Run the following. (Note yet implemented)
-<!-- TODO: Implement setup.py -->
+6. Run the following.
 
 ````bash
 python setup.py develop
