@@ -4,6 +4,8 @@ Group 50's 4th Year MLP group project.
 
 ## Set-up Conda
 
+**NOTE:** Always say yes if an option is given
+
 1. Download and install conda [here](https://docs.anaconda.com/anaconda/install/)
 2. First create an environment
 
@@ -27,8 +29,7 @@ pip install requirements.txt
 bash install.sh
 ````
 
-6. Run the following. (Note yet implemented)
-<!-- TODO: Implement setup.py -->
+6. Run the following.
 
 ````bash
 python setup.py develop
