@@ -20,7 +20,7 @@ conda activate mlp-proj
 4. Run the following. Please note, when you add more dependencies add to the `requirements.txt` file 
 
 ````bash
-pip install requirements.txt
+pip install -r requirements.txt
 ````
 
 5. Run the following command to install requirements for MLP cluster.
