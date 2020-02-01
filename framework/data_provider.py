@@ -51,6 +51,10 @@ class FIW(data.Dataset):
             raise RuntimeError(f"Setting {setting} unkown for FIW dataset. Please use \'train\' or \'test\'")
         
     
+    def _download(self):
+        # TODO: Should be used to download dataset if not currently available
+        pass
+    
     def __len__(self):
         return len(self.dataset)
 
