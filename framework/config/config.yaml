@@ -1,0 +1,18 @@
+# Treat this similarly to json
+DEFAULT:
+  experiment_name: default_experiment
+  training:
+    dataset: "FIW"
+    batch_size: 32
+    epochs: 100
+    # Could add callbacks for stats
+    # Could add checkpoints to load or save the model
+  # We could be experimenting with different networks this is
+  network:
+    network_type: "fiw_cnn"
+    # Image info could go here, channels, image height/width
+    # num layers, output dim etc. This can all be configured
+  evaluation:
+    # can decide what metrics we want to do here
+    # loss tp/fp ...
+    # configure what and how to save data here

@@ -1,2 +1,8 @@
 # pip install requirements.txt
 pandas
+matplotlib
+networkx
+numpy
+plotly==4.5.0
+Pillow
+psutil
