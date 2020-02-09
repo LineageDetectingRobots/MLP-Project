@@ -8,16 +8,26 @@ from mpl_toolkits.mplot3d import proj3d
 from imageio import imread
 from skimage.transform import resize
 from scipy.spatial import distance
-from keras.models import load_model
+from tensorflow.keras.models import load_model
+# from keras.models import load_model
 import pandas as pd
 from tqdm import tqdm
 
-train_df = pd.read_csv("../datasets/train_relationships.csv")
-test_df = pd.read_csv("../datasets/sample_submission.csv")
+from framework import DATASET_PATH
+
+# NOTE: Dataset file path should be datasets/"dataset_name"/<csvs or image data>
+train_df = pd.read_csv(os.path.join(DATASET_PATH,
+                                    "recognizing-faces-in-the-wild",
+                                    "train_relationships.csv"))
+test_df = pd.read_csv(os.path.join(DATASET_PATH,
+                                    "recognizing-faces-in-the-wild",
+                                    "sample_submission.csv"))
 
 from keras_facenet import FaceNet
 # model = FaceNet()
-model_path = '../baseline/facenet_keras.h5'
+
+current_directory = os.path.dirname(os.path.realpath(__file__))
+model_path = os.path.join(current_directory, 'facenet_keras.h5')
 model = load_model(model_path)
 
 # Here's preprocessing stuff. The images from the test set seem 
@@ -68,8 +78,11 @@ def calc_embs(filepaths, margin=10, batch_size=512):
 
     return embs
 
-test_images = os.listdir("../datasets/test/")
-test_embs = calc_embs([os.path.join("../datasets/test/", f) for f in test_images])
+test_filepath = os.path.join(DATASET_PATH,
+                             "recognizing-faces-in-the-wild",
+                             "test")
+test_images = os.listdir(test_filepath)
+test_embs = calc_embs([os.path.join(test_filepath, f) for f in test_images])
 np.save("test_embs.npy", test_embs)
 
 
@@ -90,7 +103,9 @@ for dist in tqdm(all_distances):
     prob = np.sum(all_distances[np.where(all_distances <= dist)[0]])/sum_dist
     probs.append(1 - prob)
 
-
-sub_df = pd.read_csv("../datasets/sample_submission.csv")
+sample_filepath = os.path.join(DATASET_PATH,
+                               "recognizing-faces-in-the-wild",
+                               "sample_submission.csv")
+sub_df = pd.read_csv(sample_filepath)
 sub_df.is_related = probs
 sub_df.to_csv("submission.csv", index=False)

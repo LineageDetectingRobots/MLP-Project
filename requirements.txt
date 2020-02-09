@@ -2,7 +2,7 @@
 pandas
 matplotlib
 networkx
-numpy
+numpy==1.16
 plotly==4.5.0
 Pillow
 psutil
@@ -13,6 +13,7 @@ tqdm
 scipy
 tqdm
 scikit-learn
-scikit-image
+scikit-image==0.14.2
 tensorflow
 keras-facenet
+msgpack
