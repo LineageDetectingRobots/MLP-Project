@@ -1,5 +1,6 @@
 # MLP Ignores
 datasets/
+baseline/facenet_keras.h5
 
 # MAC files
 *.DS_Store
