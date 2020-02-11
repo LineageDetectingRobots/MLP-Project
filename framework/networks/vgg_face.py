@@ -5,11 +5,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchfile
+import pandas as pd
 from skimage.transform import resize
+from scipy.spatial import distance
 from imageio import imread
 from tqdm import tqdm
-from framework import MODEL_PATH
+from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
 from framework.utils.downloads import download_vgg_weights
+
+# TODO: Enable this if you have a decent GPU
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 
 
 class VGG16(nn.Module):
@@ -88,7 +94,7 @@ class VGG16(nn.Module):
         When top layer is removed can be used to get similarity metric between faces
         """
         # TODO: Other study in Kaggle comp. used avg pool
-        # https://www.kaggle.com/ateplyuk/vggface-baseline-in-keras?fbclid=IwAR12q3OsejMsQFggEWl1Rb2LcgIeKBszW8k6fQ3pEFPv5pvF-t3dBLtKPY0
+        # https://www.kaggle.test_df = pd.read_csv("../input/recognizing-faces-in-the-wild/sample_submission.csv")om/ateplyuk/vggface-baseline-in-keras?fbclid=IwAR12q3OsejMsQFggEWl1Rb2LcgIeKBszW8k6fQ3pEFPv5pvF-t3dBLtKPY0
         x = F.relu(self.conv_1_1(x))
         x = F.relu(self.conv_1_2(x))
         x = F.max_pool2d(x, 2, 2)
@@ -115,9 +121,11 @@ def load_and_resize_images(filepaths, image_size=244):
     resized_images = []
     for filepath in filepaths:
         img = imread(filepath)
-        aligned = resize(img, (image_size, image_size))
+        aligned = resize(img, (image_size, image_size), mode='reflect')
+
         resized_images.append(aligned)
-    return resized_images
+    # print(len(resized_images))
+    return np.array(resized_images).reshape(-1, 3, image_size, image_size)
 
 def normalise(imgs):
     if imgs.ndim == 4:
@@ -145,13 +153,61 @@ def calc_features(model: VGG16, filepaths, batch_size=128):
     pred_features = []
     for start in tqdm(range(0, len(filepaths), batch_size)):
         normalised_images = normalise(load_and_resize_images(filepaths[start:start+batch_size]))
-        pred_features.append(model.get_features(normalised_images))
-    # TODO: l2 norm
+        # Need to convert to a tensor
+        inputs = torch.from_numpy(normalised_images).float().to(device)
+        features = model.get_features(inputs)
+        features_numpy = features.cpu().numpy()
+        pred_features.append(features_numpy)
     features = l2_normalisation(np.concatenate(pred_features))
     return features
 
 if __name__ == "__main__":
     download_vgg_weights()
     model = VGG16()
+    model.to(device)
+    # Load model weights that have been just downloaded
     model_path = os.path.join(MODEL_PATH, "vgg_face_torch", "VGG_FACE.t7")
     model.load_weights(model_path)
+
+    # Set model to eval mode when testing/evaluating
+    model.eval()
+
+    # Get test df
+    submission_csv = os.path.join(DATASET_PATH, "recognizing-faces-in-the-wild", "sample_submission.csv")
+    test_df = pd.read_csv(submission_csv)
+
+    # Get test images filpath
+    test_filepath = os.path.join(DATASET_PATH, "recognizing-faces-in-the-wild", "test")
+    test_images = os.listdir(test_filepath)
+    # Calculate the features and save them, this takes a long time so best to save, when you have done it
+    with torch.no_grad():
+        test_vgg_results = os.path.join(RESULTS_PATH, "test_embs_vgg.npy")
+        if not os.path.exists(test_vgg_results):
+            test_features = calc_features(model, [os.path.join(test_filepath, file) for file in test_images])
+            np.save(test_vgg_results, test_features)
+        else:
+            test_features = np.load(test_vgg_results)
+    
+    # Create a mapping for image filepath to index
+    img2idx = dict()
+    for idx, img_filepath in enumerate(test_images):
+        img2idx[img_filepath] = idx
+    
+    # Create a distance column in test_df. Euclidean distance between image pairs
+    test_df["distance"] = 0
+    for idx, row in tqdm(test_df.iterrows(), total=len(test_df)):
+        imgs = [test_features[img2idx[img]] for img in row.img_pair.split("-")]
+        test_df.loc[idx, "distance"] = distance.euclidean(*imgs)
+
+    # Sum all the distances up
+    all_distances = test_df.distance.values
+    sum_dist = np.sum(all_distances)
+
+    # Calculate prob. based on sum of all closer matches over total distance summed
+    probs = []
+    for dist in tqdm(all_distances):
+        prob = np.sum(all_distances[np.where(all_distances <= dist)[0]])/sum_dist
+        probs.append(1 - prob)
+
+    # from pprint import pprint
+    # pprint(probs)

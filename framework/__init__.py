@@ -7,7 +7,11 @@ if not os.path.exists(DATASET_PATH):
     os.mkdir(DATASET_PATH)
 
 MODEL_PATH = os.path.join(dir_path, "..", "models")
-if not os.path.exists(DATASET_PATH):
-    os.mkdir(DATASET_PATH)
+if not os.path.exists(MODEL_PATH):
+    os.mkdir(MODEL_PATH)
+
+RESULTS_PATH = os.path.join(dir_path, "..", "results")
+if not os.path.exists(RESULTS_PATH):
+    os.mkdir(RESULTS_PATH)
 
 del os

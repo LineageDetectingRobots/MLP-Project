@@ -3,6 +3,7 @@ datasets/
 models/
 baseline/facenet_keras.h5
 framework/networks/vgg_face_torch/
+results/
 
 # MAC files
 *.DS_Store

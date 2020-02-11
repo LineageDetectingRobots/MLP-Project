@@ -1,8 +1,7 @@
 import os
 import zipfile
 import kaggle
-
-from framework import DATASET_PATH
+from framework import DATASET_PATH, MODEL_PATH
 
 def download_vgg_weights():
     # Downloads the vgg model and extracts it
@@ -17,8 +16,9 @@ def download_vgg_weights():
             os.system('wget http://www.robots.ox.ac.uk/~vgg/software/vgg_face/src/vgg_face_torch.tar.gz')
             print("Extracting....")
             os.system('tar -xvf vgg_face_torch.tar.gz')
-            os.system(f'mv {vgg_folder} {MODEL_PATH}')
+            os.system(f'mv {vgg_folder} {model_vgg_folder}')
         except:
+            os.rmdir(model_vgg_folder)
             raise
         finally:
             print("Cleaning up files...")
