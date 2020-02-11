@@ -149,7 +149,7 @@ def l2_normalisation(x, axis=-1, epsilon=1e-10):
     return output
 
 
-def calc_features(model: VGG16, filepaths, batch_size=128):
+def calc_features(model: VGG16, filepaths, batch_size=64):
     pred_features = []
     for start in tqdm(range(0, len(filepaths), batch_size)):
         normalised_images = normalise(load_and_resize_images(filepaths[start:start+batch_size]))
@@ -161,7 +161,9 @@ def calc_features(model: VGG16, filepaths, batch_size=128):
     features = l2_normalisation(np.concatenate(pred_features))
     return features
 
-if __name__ == "__main__":
+
+
+def run_sample_submission():
     download_vgg_weights()
     model = VGG16()
     model.to(device)
@@ -209,5 +211,38 @@ if __name__ == "__main__":
         prob = np.sum(all_distances[np.where(all_distances <= dist)[0]])/sum_dist
         probs.append(1 - prob)
 
-    # from pprint import pprint
-    # pprint(probs)
+def run_train_baseline():
+    # NOTE: This is using the FIW dataset we got
+    fiw_folder = os.path.join(DATASET_PATH, "fiw")
+    if not os.path.exists(fiw_folder):
+        raise RuntimeError("Please download the fiw dataset. Save it in `datasets/fiw`. The data should be unzipped in the fiw folder")
+    download_vgg_weights()
+    model = VGG16()
+    model.to(device)
+    # Load model weights that have been just downloaded
+    model_path = os.path.join(MODEL_PATH, "vgg_face_torch", "VGG_FACE.t7")
+    model.load_weights(model_path)
+
+    # Set model to eval mode when testing/evaluating
+    model.eval()
+
+    # TODO: Get filepaths I want to test
+    csv_pairs_folder = os.path.join(fiw_folder, "lists", "pairs", "csv")
+    csv_files = os.listdir(csv_pairs_folder)
+    csv_files = [os.path.join(csv_pairs_folder, csv_file) for csv_file in csv_files]
+
+    # TODO: Get all pairs I want to test
+
+    # We need to get image filepaths to locate the images
+    # Then pair them up labelling if they are blood related(1) or not(0)
+    # Then run the model using all images
+    # save results
+    # compute distance between pairs
+    # Get prob they are related
+    # if prob >= 0.5 related(1), otherwise not related (0)
+    # Calc metrics from this i.e. roc curve
+
+if __name__ == "__main__":
+    # Example: run one of the below functions to do things and stuff
+    # run_sample_submission()
+    # run_train_baseline()
