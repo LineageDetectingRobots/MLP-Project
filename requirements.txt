@@ -6,7 +6,6 @@ numpy==1.16
 plotly==4.5.0
 Pillow
 psutil
-keras
 opencv-python
 imageio
 tqdm
@@ -14,6 +13,4 @@ scipy
 tqdm
 scikit-learn
 scikit-image==0.14.2
-tensorflow
-keras-facenet
-msgpack
+torchfile

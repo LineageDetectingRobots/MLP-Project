@@ -1,6 +1,8 @@
 # MLP Ignores
 datasets/
+models/
 baseline/facenet_keras.h5
+framework/networks/vgg_face_torch/
 
 # MAC files
 *.DS_Store
