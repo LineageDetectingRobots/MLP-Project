@@ -11,11 +11,11 @@ from scipy.spatial import distance
 from imageio import imread
 from tqdm import tqdm
 from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
-from framework.utils.downloads import download_vgg_weights
+from framework.utils.downloads import download_vgg_weights, download_fiw_kaggle
 
 # TODO: Enable this if you have a decent GPU
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = "cpu"
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = "cpu"
 
 
 class VGG16(nn.Module):
@@ -164,6 +164,7 @@ def calc_features(model: VGG16, filepaths, batch_size=64):
 
 
 def run_sample_submission():
+    download_fiw_kaggle()
     download_vgg_weights()
     model = VGG16()
     model.to(device)
@@ -244,5 +245,5 @@ def run_train_baseline():
 
 if __name__ == "__main__":
     # Example: run one of the below functions to do things and stuff
-    # run_sample_submission()
+    run_sample_submission()
     # run_train_baseline()
