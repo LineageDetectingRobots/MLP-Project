@@ -123,9 +123,9 @@ def add_non_family_relations(n_folds: int, dataframe: pd.DataFrame):
     new_df['type'] = ['bb'] * len(new_df)
     new_df['fold'] = [1] * len(new_df)
     new_df['fid'] = ['idc'] * len(new_df)
-    print(new_df)
+    # print(new_df)
     result_df = pd.concat([dataframe, new_df], ignore_index=True)
-    print(result_df)
+    # print(result_df)
     return result_df
 
 def get_2_diff_random_indexes(max_index: int):
@@ -136,13 +136,26 @@ def get_2_diff_random_indexes(max_index: int):
         idx_2 = random.randrange(max_index)
     return idx_1, idx_2
 
-
-
 if __name__ == "__main__":
     # Example usage
     n_folds = 5
     folder_path = os.path.join(DATASET_PATH, "fiw", "lists", "pairs", "csv")
-    filepath = os.path.join(folder_path, "bb-faces.csv")
-    folded_pairs_df = generate_kfold_pairs(n_folds, filepath)
-    validation_df = add_non_family_relations(n_folds, folded_pairs_df)
-    # TODO: save validation df as csv
+    # filepath = os.path.join(folder_path, "bb-faces.csv")
+    csv_files = os.listdir(folder_path)
+    filepaths = [os.path.join(folder_path, csv_file) for csv_file in csv_files if csv_file.endswith("-faces.csv")]
+
+    final_df = None
+    for filepath in filepaths:
+        print(filepath)
+        folded_pairs_df = generate_kfold_pairs(n_folds, filepath)
+        validation_df = add_non_family_relations(n_folds, folded_pairs_df)
+        if final_df is None:
+            final_df = validation_df
+        else:
+            final_df = pd.concat([final_df, validation_df], ignore_index=True)
+
+    # print(final_df)
+
+    folder_path = os.path.join(DATASET_PATH, "fiw")
+    filepath = os.path.join(folder_path, "new_val.csv")
+    final_df.to_csv(filepath)

@@ -213,10 +213,7 @@ def run_sample_submission():
         probs.append(1 - prob)
 
 def run_train_baseline():
-    # NOTE: This is using the FIW dataset we got
-    fiw_folder = os.path.join(DATASET_PATH, "fiw")
-    if not os.path.exists(fiw_folder):
-        raise RuntimeError("Please download the fiw dataset. Save it in `datasets/fiw`. The data should be unzipped in the fiw folder")
+    download_fiw_kaggle()
     download_vgg_weights()
     model = VGG16()
     model.to(device)
@@ -227,23 +224,53 @@ def run_train_baseline():
     # Set model to eval mode when testing/evaluating
     model.eval()
 
-    # TODO: Get filepaths I want to test
-    csv_pairs_folder = os.path.join(fiw_folder, "lists", "pairs", "csv")
-    csv_files = os.listdir(csv_pairs_folder)
-    csv_files = [os.path.join(csv_pairs_folder, csv_file) for csv_file in csv_files]
+    # Get test df
+    folder_path = os.path.join(DATASET_PATH, 'fiw')
+    val_csv = os.path.join(folder_path, "new_val.csv")
+    val_df = pd.read_csv(val_csv)
+    unique_photos_filepaths = get_unique_images(val_df)
 
-    # TODO: Get all pairs I want to test
+    with torch.no_grad():
+        test_vgg_results = os.path.join(RESULTS_PATH, "test_fiw_vgg.npy")
+        if not os.path.exists(test_vgg_results):
+            test_features = calc_features(model, [os.path.join(folder_path, "FIDs", file) for file in unique_photos_filepaths])
+            np.save(test_vgg_results, test_features)
+        else:
+            test_features = np.load(test_vgg_results)
+    
+    # Create a mapping for image filepath to index
+    img2idx = dict()
+    for idx, img_filepath in enumerate(unique_photos_filepaths):
+        img2idx[img_filepath] = idx
+    
+    # Create a distance column in test_df. Euclidean distance between image pairs
+    val_df["distance"] = 0
+    for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
+        imgs = [test_features[img2idx[img]] for img in row.img_pair.split("-")]
+        val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
 
-    # We need to get image filepaths to locate the images
-    # Then pair them up labelling if they are blood related(1) or not(0)
-    # Then run the model using all images
-    # save results
-    # compute distance between pairs
-    # Get prob they are related
-    # if prob >= 0.5 related(1), otherwise not related (0)
-    # Calc metrics from this i.e. roc curve
+    # Sum all the distances up
+    all_distances = val_df.distance.values
+    sum_dist = np.sum(all_distances)
+
+    # Calculate prob. based on sum of all closer matches over total distance summed
+    probs = []
+    for dist in tqdm(all_distances):
+        prob = np.sum(all_distances[np.where(all_distances <= dist)[0]])/sum_dist
+        probs.append(1 - prob)
+    
+    val_df["probs"] = probs
+    # val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
+    
+
+
+
+def get_unique_images(dataframe):
+    return dataframe.p1.append(dataframe.p2).unique()
+
+
 
 if __name__ == "__main__":
     # Example: run one of the below functions to do things and stuff
-    run_sample_submission()
-    # run_train_baseline()
+    # run_sample_submission()
+    run_train_baseline()
