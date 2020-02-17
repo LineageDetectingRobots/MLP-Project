@@ -30,7 +30,7 @@ export TMP=/disk/scratch/${STUDENT_ID}/
 
 mkdir -p ${TMP}/datasets/
 export DATASET_DIR=${TMP}/datasets/
-cp -r ../datasets/. ${DATASET_DIR}/
+rsync -r ../datasets/ ${DATASET_DIR}
 
 # Activate the relevant virtual environment:
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp-proj
