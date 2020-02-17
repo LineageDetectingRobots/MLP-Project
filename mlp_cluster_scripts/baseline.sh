@@ -30,13 +30,23 @@ export TMP=/disk/scratch/${STUDENT_ID}/
 
 mkdir -p ${TMP}/datasets/
 export DATASET_DIR=${TMP}/datasets/
+
+mkdir -p ${TMP}/results/
+export RESULTS_DIR=${TMP}/results/
+
+mkdir -p ${TMP}/models/
+export MODELS_DIR=${TMP}/models/
+
 rsync -r ../datasets/ ${DATASET_DIR}
+rsync -r ../models/ ${MODELS_DIR}
 
 # Activate the relevant virtual environment:
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp-proj
 cd ..
 # TODO: Update this later
 python framework/networks/vgg_face.py --mlp-cluster 1
+
+rsync -r ${RESULTS_DIR}/ results/
 # python train_evaluate_emnist_classification_system.py --batch_size 100 --continue_from_epoch -1 --seed 0 \
                                                     #   --image_num_channels 3 --image_height 32 --image_width 32 \
                                                     #   --dim_reduction_type "strided" --num_layers 4 --num_filters 64 \
