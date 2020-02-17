@@ -28,26 +28,26 @@ mkdir -p /disk/scratch/${STUDENT_ID}
 export TMPDIR=/disk/scratch/${STUDENT_ID}/
 export TMP=/disk/scratch/${STUDENT_ID}/
 
-mkdir -p ${TMP}/datasets/
-export DATASET_DIR=${TMP}/datasets/
+mkdir -p ${TMP}datasets/
+export DATASET_DIR=${TMP}datasets/
 
-mkdir -p ${TMP}/results/
-export RESULTS_DIR=${TMP}/results/
+mkdir -p ${TMP}results/
+export RESULTS_DIR=${TMP}results/
 
-mkdir -p ${TMP}/models/
-export MODELS_DIR=${TMP}/models/
+mkdir -p ${TMP}models/
+export MODELS_DIR=${TMP}models/
 
-mkdir -p ${DATASET_DIR}/fiw/
-rsync -r ../datasets/fiw/ ${DATASET_DIR}/fiw
+mkdir -p ${DATASET_DIR}fiw/
+rsync -r ../datasets/fiw/ ${DATASET_DIR}fiw
 
-mkdir -p ${MODELS_DIR}/vgg_face_torch/
-rsync -r ../models/vgg_face_torch/ ${MODELS_DIR}/vgg_face_torch
+mkdir -p ${MODELS_DIR}vgg_face_torch/
+rsync -r ../models/vgg_face_torch/ ${MODELS_DIR}vgg_face_torch
 
 # Activate the relevant virtual environment:
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp-proj
 cd ..
 # TODO: Update this later
-python framework/networks/vgg_face.py --mlp-cluster 1
+python framework/networks/vgg_face.py --cluster 1
 
 rsync -r ${RESULTS_DIR}/ results/
 # python train_evaluate_emnist_classification_system.py --batch_size 100 --continue_from_epoch -1 --seed 0 \

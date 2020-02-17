@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, argparse
 import numpy as np
 import cv2
 import torch
@@ -272,4 +272,7 @@ def get_unique_images(dataframe):
 if __name__ == "__main__":
     # Example: run one of the below functions to do things and stuff
     # run_sample_submission()
+    # parser = argparse.ArgumentParser(description='Process some integers.')
+    # parser.add_argument('cluster', metavar='M', type=int, nargs='+',
+    #                 help='1 for mlp cluster, otherwise 0', default=0)
     run_train_baseline()
