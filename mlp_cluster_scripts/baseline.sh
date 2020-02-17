@@ -44,7 +44,8 @@ mkdir -p ${MODELS_DIR}vgg_face_torch/
 rsync -r ../models/vgg_face_torch/ ${MODELS_DIR}vgg_face_torch
 
 # Activate the relevant virtual environment:
-source /home/${STUDENT_ID}/miniconda3/bin/activate mlp-proj
+source ~/.bashrc
+conda activate mlp-proj
 cd ..
 # TODO: Update this later
 python framework/networks/vgg_face.py --cluster 1
