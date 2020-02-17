@@ -1,10 +1,10 @@
 #!/bin/sh
-SBATCH -N 1	  # nodes requested
-SBATCH -n 1	  # tasks requested
-SBATCH --partition=Teach-Standard
-SBATCH --gres=gpu:1
-SBATCH --mem=12000  # memory in Mb
-SBATCH --time=0-10:00:00
+# SBATCH -N 1	  # nodes requested
+# SBATCH -n 1	  # tasks requested
+# SBATCH --partition=Teach-Standard
+# SBATCH --gres=gpu:1
+# SBATCH --mem=12000  # memory in Mb
+# SBATCH --time=0-10:00:00
 
 export CUDA_HOME=/opt/cuda-9.0.176.1/
 
@@ -37,8 +37,11 @@ export RESULTS_DIR=${TMP}/results/
 mkdir -p ${TMP}/models/
 export MODELS_DIR=${TMP}/models/
 
-rsync -r ../datasets/ ${DATASET_DIR}
-rsync -r ../models/ ${MODELS_DIR}
+mkdir -p ${DATASET_DIR}/fiw/
+rsync -r ../datasets/fiw/ ${DATASET_DIR}/fiw
+
+mkdir -p ${MODELS_DIR}/vgg_face_torch/
+rsync -r ../models/vgg_face_torch/ ${MODELS_DIR}/vgg_face_torch
 
 # Activate the relevant virtual environment:
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp-proj

@@ -213,7 +213,6 @@ def run_sample_submission():
         probs.append(1 - prob)
 
 def run_train_baseline():
-    download_fiw_kaggle()
     download_vgg_weights()
     model = VGG16()
     model.to(device)
