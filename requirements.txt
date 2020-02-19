@@ -15,3 +15,5 @@ scikit-learn
 scikit-image==0.14.2
 torchfile
 kaggle
+notebook>=5.3
+ipywidgets>=7.2
