@@ -70,23 +70,24 @@ def add_non_family_relations(n_folds: int, dataframe: pd.DataFrame):
         relation_type = dataframe.loc[family_photo_ids].iloc[0].type
         fold = dataframe.loc[family_photo_ids].iloc[0].fold
 
-        family_dict[family_id] = {}
+        
         for entry in family_df_entries:
             entry_split = entry.split('/')
+            fID = entry_split[0]
+            if fID not in family_dict:
+                family_dict[fID] = {}
             member = entry_split[1]
             member_photo = entry_split[2]
-            if member not in family_dict[family_id]:
-                family_dict[family_id][member] = []
-                family_dict[family_id][member].append(member_photo)
+            if member not in family_dict[fID]:
+                family_dict[fID][member] = []
+                family_dict[fID][member].append(member_photo)
             else:
-                if member_photo not in family_dict[family_id][member]:
-                    family_dict[family_id][member].append(member_photo)
+                if member_photo not in family_dict[fID][member]:
+                    family_dict[fID][member].append(member_photo)
 
     # Now we want to add non-related images to the dataframe
     # We want 50/50 related, non-related so there is no bias
-    num_of_relations = len(dataframe)
 
-    # Pick pairs randomly make sure families are not the same
     len_df = len(dataframe)
     new_rows = 0
     photo_1_list = []

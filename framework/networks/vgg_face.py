@@ -245,7 +245,8 @@ def run_train_baseline():
     # Create a distance column in test_df. Euclidean distance between image pairs
     val_df["distance"] = 0
     for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
-        imgs = [test_features[img2idx[img]] for img in row.img_pair.split("-")]
+        # imgs = [test_features[img2idx[row.p1]] for img in row.img_pair.split("-")]
+        imgs = [test_features[img2idx[row.p1]], test_features[img2idx[row.p2]]]
         val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
 
     # Sum all the distances up
@@ -259,6 +260,16 @@ def run_train_baseline():
         probs.append(1 - prob)
     
     val_df["probs"] = probs
+
+    val_df["pred_label"] = 0
+    for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
+        if row.probs > 0.5:
+            val_df.loc[idx, "pred_label"] = 1
+        else:
+            val_df.loc[idx, "pred_label"] = 0
+    
+    save_results_path = os.path.join(RESULTS_PATH, "results_baseline.csv")
+    val_df.to_csv(save_results_path)
     # val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
     
 
