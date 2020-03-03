@@ -1,5 +1,7 @@
 # MLP Ignores
 datasets/
+!datasets/tripairs/fmd-faces.csv
+!datasets/tripairs/fms-faces.csv
 models/
 baseline/facenet_keras.h5
 framework/networks/vgg_face_torch/
