@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import requests
 from requests.adapters import HTTPAdapter
 import os
+from framework import DATASET_PATH
 
 
 class BasicConv2d(nn.Module):
@@ -346,3 +347,20 @@ def get_torch_home():
         )
     )
     return torch_home
+
+
+if __name__ == '__main__':
+    # NOTE: example usage
+    from PIL import Image
+    from framework.networks.mtcnn import MTCNN
+    # Used to align images and crop
+    mtcnn = MTCNN(image_size=160, margin=32)
+
+    resnet = InceptionResnetV1(pretrained='vggface2').eval()
+
+    some_img = os.path.join(DATASET_PATH, 'fiw', 'FIDs', 'F0001', 'MID1', 'P00001_face0.jpg')
+    img = Image.open(some_img)
+    img.show()
+    im_cropped = mtcnn(img)
+    im_embedding = resnet(im_cropped.unsqueeze(0))
+    print(im_embedding.shape)

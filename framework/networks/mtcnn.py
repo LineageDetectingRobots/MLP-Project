@@ -3,7 +3,7 @@ from torch import nn
 import numpy as np
 import os
 
-from .utils.detect_face import detect_face, extract_face
+from framework.utils.detect_face import detect_face, extract_face
 
 
 class PNet(nn.Module):
@@ -30,7 +30,7 @@ class PNet(nn.Module):
         self.training = False
 
         if pretrained:
-            state_dict_path = os.path.join(os.path.dirname(__file__), '../data/pnet.pt')
+            state_dict_path = os.path.join(os.path.dirname(__file__), 'data/pnet.pt')
             state_dict = torch.load(state_dict_path)
             self.load_state_dict(state_dict)
 
@@ -75,7 +75,7 @@ class RNet(nn.Module):
         self.training = False
 
         if pretrained:
-            state_dict_path = os.path.join(os.path.dirname(__file__), '../data/rnet.pt')
+            state_dict_path = os.path.join(os.path.dirname(__file__), 'data/rnet.pt')
             state_dict = torch.load(state_dict_path)
             self.load_state_dict(state_dict)
 
@@ -128,7 +128,7 @@ class ONet(nn.Module):
         self.training = False
 
         if pretrained:
-            state_dict_path = os.path.join(os.path.dirname(__file__), '../data/onet.pt')
+            state_dict_path = os.path.join(os.path.dirname(__file__), 'data/onet.pt')
             state_dict = torch.load(state_dict_path)
             self.load_state_dict(state_dict)
 
