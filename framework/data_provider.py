@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import torch.utils.data as data
 
-class FIW(data.Dataset):
+class FIW_kaggle(data.Dataset):
     """
 
     """
@@ -42,7 +42,8 @@ class FIW(data.Dataset):
             # Dropping old Name columns
             self.dataset.drop(columns =["p1"], inplace = True)
             self.dataset.drop(columns =["p2"], inplace = True)
-
+        elif setting == 'validation':
+            raise RuntimeError("Validation not implemented yet. Sorry")
         elif setting == "test":
             # TODO: Implement
             # csv_path =
@@ -74,9 +75,31 @@ class FIW(data.Dataset):
 
         return idx, self._get_pair(idx), self._get_label(idx)
 
+
+class FIW(data.Dataset):
+    def __init__(self, path_to_dataset: str, setting: str = 'train'):
+        # NOTE: Expected that dataset already contains 50/50 split of relation / non-relation
+        if setting == 'train':
+        elif setting == 'validation':
+        elif setting == 'test':
+        else:
+            raise RuntimeError(f'Unkown setting: {setting}')
+
+
+    
+    def _get_label(self, idx):
+        # CHECK IF FROM THE SAME FAMILY
+        if self.dataset.iloc[idx, 0] == self.dataset.iloc[idx, 2]:
+            return 1
+        else:
+            return 0
+    
+    def __getitem__(self, idx):
+        return self._get_pair(idx), self._get_label(idx)
+
 if __name__ == "__main__":
     # EXAMPLE USAGE
     from framework import DATASET_PATH
     data_path = os.path.join(DATASET_PATH, "recognizing-faces-in-the-wild")
-    fiw_dataset = FIW(data_path)
+    fiw_dataset = FIW_kaggle(data_path)
     print(fiw_dataset.__getitem__(4))

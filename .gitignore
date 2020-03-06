@@ -2,6 +2,7 @@
 datasets/
 !datasets/tripairs/fmd-faces.csv
 !datasets/tripairs/fms-faces.csv
+!datasets/tripairs/5_cross_val.csv
 models/
 baseline/facenet_keras.h5
 framework/networks/vgg_face_torch/
