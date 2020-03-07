@@ -1,12 +1,11 @@
-from data.data_pipe import de_preprocess, get_train_loader, get_val_data
+from arcface.data.data_pipe import de_preprocess, get_train_loader, get_val_data
 # from model import Backbone, Arcface, MobileFaceNet, Am_softmax, l2_norm
-from my_ArcFace import Backbone, Arcface
+from arcface.my_ArcFace import Backbone, Arcface
 # from verifacation import evaluate
 import torch
 from torch import optim
 import numpy as np
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
 from matplotlib import pyplot as plt
 plt.switch_backend('agg')
 # from utils import get_time, gen_plot, hflip_batch
@@ -28,10 +27,10 @@ class face_learner(object):
             save_path = conf.save_path
         else:
             save_path = conf.model_path            
-        # self.model.load_state_dict(torch.load(save_path/'model_{}'.format(fixed_str)))
-        if torch.cuda.is_available():
-            loaded_model = torch.load(save_path/'model_{}'.format(fixed_str))
-        else:
+        print(save_path)
+        if conf.device.type == 'cpu':
             loaded_model = torch.load(save_path/'model_{}'.format(fixed_str), map_location='cpu')
+        else:
+            loaded_model = torch.load(save_path/'model_{}'.format(fixed_str))
         self.model.load_state_dict(loaded_model)
 

@@ -5,12 +5,35 @@ from pprint import pprint
 from tqdm import tqdm
 import torch
 import torch.nn as nn
+import argparse
+import arcface.my_face_verify as arcface
+# import as sphereface
+# import as facenet
+from vgg_face import VGG16
+from framework.utils.downloads import download_vgg_weights
+from framework import MODEL_PATH
+
+
+from framework import DATASET_PATH, RESULTS_PATH
 
 from framework import DATASET_PATH, RESULTS_PATH
 
 def get_model(model_name: str) -> nn.Module:
-    pass
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if model_name == 'arc_face':
+        threshold = 1.54
+        model = arcface.get_model(threshold)
+    elif model_name == 'vgg_face':
+        download_vgg_weights()
+        model = VGG16()
+        model.to(device)
+        # Load model weights that have been just downloaded
+        model_path = os.path.join(MODEL_PATH, "vgg_face_torch", "VGG_FACE.t7")
+        model.load_weights(model_path)
+        # Set model to eval mode when testing/evaluating
+        model.eval()
 
+    return model
 
 def get_unique_images(dataframe: pd.DataFrame):
     return dataframe.F.append(dataframe.M).append(dataframe.C).unique()
@@ -44,7 +67,11 @@ def normalise(imgs):
     normalised_imgs = (imgs - mean) / std_adj
     return normalised_imgs
 
+<<<<<<< Updated upstream
 def calc_features(model: nn.Modules, photo_paths: list, batch_size=64):
+=======
+def calc_features(model, photo_paths: list, batch_size=64):
+>>>>>>> Stashed changes
     # TODO: Find out what device the model is on
     device = model._device()
     pred_features = []
@@ -72,7 +99,11 @@ def calc_features(model: nn.Modules, photo_paths: list, batch_size=64):
 
 
 if __name__ == '__main__':
-    model_name = 'arc_face'
+    parser = argparse.ArgumentParser(description='for face verification')
+    parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
+    args = parser.parse_args()
+
+    model_name = args.model
     model = get_model(model_name)
 
     # Get our file we are using for testing

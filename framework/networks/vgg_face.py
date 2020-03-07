@@ -11,7 +11,7 @@ from scipy.spatial import distance
 from imageio import imread
 from tqdm import tqdm
 from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
-from framework.utils.downloads import download_vgg_weights, download_fiw_kaggle
+from framework.utils.downloads import download_vgg_weights
 
 # TODO: Enable this if you have a decent GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -59,6 +59,7 @@ class VGG16(nn.Module):
                     block += 1
                     self_layer.weight.data[...] = torch.tensor(layer.weight).view_as(self_layer.weight)[...]
                     self_layer.bias.data[...] = torch.tensor(layer.bias).view_as(self_layer.bias)[...]
+                
     
     def forward(self, x):
         """
