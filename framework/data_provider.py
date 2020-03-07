@@ -1,9 +1,11 @@
 
 import os
+from skimage import io
 import pandas as pd
 import torch.utils.data as data
+import matplotlib.pyplot as plt
 
-class FIW(data.Dataset):
+class FIW_kaggle(data.Dataset):
     """
 
     """
@@ -42,7 +44,8 @@ class FIW(data.Dataset):
             # Dropping old Name columns
             self.dataset.drop(columns =["p1"], inplace = True)
             self.dataset.drop(columns =["p2"], inplace = True)
-
+        elif setting == 'validation':
+            raise RuntimeError("Validation not implemented yet. Sorry")
         elif setting == "test":
             # TODO: Implement
             # csv_path =
@@ -74,9 +77,58 @@ class FIW(data.Dataset):
 
         return idx, self._get_pair(idx), self._get_label(idx)
 
+
+class FIW(data.Dataset):
+    def __init__(self, path_to_dataset: str, path_to_split_csv: str, folds: list):
+        # NOTE: Expected that dataset already contains 50/50 split of relation / non-relation
+        self.ds_path = path_to_dataset
+
+        # Expects cross fold
+        self.dataset = pd.read_csv(path_to_split_csv)
+        drop_idxs = []
+        for idx, row in self.dataset.iterrows():
+            if row.fold not in folds:
+                drop_idxs.append(idx)
+        self.dataset.drop(self.dataset.index[drop_idxs], inplace=True)
+
+    
+    def __len__(self):
+        return len(self.dataset)
+    
+    def _get_label(self, idx):
+        # CHECK IF FROM THE SAME FAMILY
+        father_fam_id = self.dataset.iloc[idx].F[:5]
+        mother_fam_id = self.dataset.iloc[idx].M[:5]
+        child_fam_id = self.dataset.iloc[idx].C[:5]
+        if father_fam_id == mother_fam_id:
+            if father_fam_id == child_fam_id:
+                return 1;
+            else:
+                return 0;
+        else:
+            raise RuntimeError('Mother and father family ID should be the same. index = ', idx)
+    
+    def _get_tripair(self, idx):
+        father_path = os.path.join(self.ds_path, self.dataset.iloc[idx].F)
+        mother_path = os.path.join(self.ds_path, self.dataset.iloc[idx].M)
+        child_path = os.path.join(self.ds_path, self.dataset.iloc[idx].C)
+
+        father = io.imread(father_path)
+        mother = io.imread(mother_path)
+        child = io.imread(child_path)
+        return [father, mother, child]
+
+    def __getitem__(self, idx):
+        return self._get_tripair(idx), self._get_label(idx)
+
 if __name__ == "__main__":
-    # EXAMPLE USAGE
+    # EXAMPLE USAGE for tripairs
     from framework import DATASET_PATH
-    data_path = os.path.join(DATASET_PATH, "recognizing-faces-in-the-wild")
-    fiw_dataset = FIW(data_path)
-    print(fiw_dataset.__getitem__(4))
+    data_path = os.path.join(DATASET_PATH, "fiw", 'FIDs')
+    csv_path = os.path.join(DATASET_PATH, "fiw", "tripairs", '5_cross_val.csv')
+    fiw_dataset = FIW(data_path, csv_path, folds=[1,2,3,4])
+    fam_list, label = fiw_dataset.__getitem__(128)
+    print('is_fam = ', label)
+    for fam in fam_list:
+        plt.imshow(fam)
+        plt.show()
