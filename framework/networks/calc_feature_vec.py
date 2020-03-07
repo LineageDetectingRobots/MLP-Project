@@ -90,10 +90,6 @@ def calc_features(model, photo_paths: list, batch_size=64):
     features = l2_normalisation(np.concatenate(pred_features))
     return features
 
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
