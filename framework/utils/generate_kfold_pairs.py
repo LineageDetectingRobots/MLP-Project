@@ -4,7 +4,6 @@ import numpy as np
 from framework import DATASET_PATH
 from sklearn.model_selection import KFold
 import pandas as pd
-import random
 from pprint import pprint
 
 
