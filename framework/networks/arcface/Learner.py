@@ -20,8 +20,9 @@ class face_learner(object):
         self.model = Backbone(conf.net_depth, conf.drop_ratio, conf.net_mode).to(conf.device)
         print('{}_{} model generated'.format(conf.net_mode, conf.net_depth))
         self.threshold = conf.threshold
-    
 
+    def _device(self):
+        return next(self.model.parameters()).device
     
     def load_state(self, conf, fixed_str, from_save_folder=False, model_only=False):
         if from_save_folder:

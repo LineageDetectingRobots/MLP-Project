@@ -40,6 +40,9 @@ class VGG16(nn.Module):
         self.fc7 = nn.Linear(4096, 4096)
         self.fc8 = nn.Linear(4096, 2622)
     
+    def _device(self):
+        return next(self.parameters()).device
+
     def load_weights(self, path):
         model = torchfile.load(path)
         counter = 1

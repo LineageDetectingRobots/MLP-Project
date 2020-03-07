@@ -1,6 +1,9 @@
 import os
 import pandas as pd
+import numpy as np
 from pprint import pprint
+from imageio import imread
+from skimage.transform import resize
 
 from tqdm import tqdm
 import torch
@@ -12,11 +15,8 @@ import arcface.my_face_verify as arcface
 from vgg_face import VGG16
 from framework.utils.downloads import download_vgg_weights
 from framework import MODEL_PATH
-
-
 from framework import DATASET_PATH, RESULTS_PATH
 
-from framework import DATASET_PATH, RESULTS_PATH
 
 def get_model(model_name: str) -> nn.Module:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -52,6 +52,7 @@ def load_and_resize_images(filepaths, image_size=244):
     return np.array(resized_images).reshape(-1, 3, image_size, image_size)
 
 def normalise(imgs):
+    # TODO: const values for whole set not just batch
     if imgs.ndim == 4:
         axis = (1, 2, 3)
         size = imgs[0].size
@@ -72,8 +73,8 @@ def calc_features(model, photo_paths: list, batch_size=64):
     device = model._device()
     pred_features = []
     for start in tqdm(range(0, len(photo_paths), batch_size)):
-        # TODO: load and preprocess images
         batch_paths = photo_paths[start:start + batch_size]
+        # TODO: load and preprocess images
         # TODO: Make image size configurable
         image_batch = load_and_resize_images(batch_paths, image_size = 255)
 
@@ -93,6 +94,8 @@ def calc_features(model, photo_paths: list, batch_size=64):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
+
+
     args = parser.parse_args()
 
     model_name = args.model
