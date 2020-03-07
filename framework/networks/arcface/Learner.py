@@ -13,6 +13,7 @@ from PIL import Image
 from torchvision import transforms as trans
 import math
 import bcolz
+import sys
 
 class face_learner(object):
     def __init__(self, conf, inference=False):
@@ -28,9 +29,18 @@ class face_learner(object):
         else:
             save_path = conf.model_path            
         print(save_path)
-        if conf.device.type == 'cpu':
-            loaded_model = torch.load(save_path/'model_{}'.format(fixed_str), map_location='cpu')
-        else:
-            loaded_model = torch.load(save_path/'model_{}'.format(fixed_str))
+        try:
+            if conf.device.type == 'cpu':
+                loaded_model = torch.load(save_path/'model_{}'.format(fixed_str), map_location='cpu')
+            else:
+                loaded_model = torch.load(save_path/'model_{}'.format(fixed_str))
+            
+        except IOError:
+            print("Arcface: Weights not found. Please download from " +
+            "https://onedrive.live.com/?authkey=!AOw5TZL8cWlj10I&cid=CEC0E1F8F0542A13&id=CEC0E1F8F0542A13!835&parId=root&action=locate/" +
+            " and add model_ir_se50.pth to arcface/work_space/model/")
+            sys.exit(0)
         self.model.load_state_dict(loaded_model)
+
+        
 

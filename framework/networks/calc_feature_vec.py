@@ -67,11 +67,7 @@ def normalise(imgs):
     normalised_imgs = (imgs - mean) / std_adj
     return normalised_imgs
 
-<<<<<<< Updated upstream
-def calc_features(model: nn.Modules, photo_paths: list, batch_size=64):
-=======
 def calc_features(model, photo_paths: list, batch_size=64):
->>>>>>> Stashed changes
     # TODO: Find out what device the model is on
     device = model._device()
     pred_features = []
