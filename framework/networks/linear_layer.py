@@ -6,9 +6,14 @@ import math
 
 # computues cosine similarity
 def cosine_sim(x1, x2, dim=1, eps=1e-8):
+#  torch.mm does matrix mult
     ip = torch.mm(x1, x2.t())
     w1 = torch.norm(x1, 2, dim)
     w2 = torch.norm(x2, 2, dim)
+    # torch.ger => Outer product of input and vec2. If input is a vector 
+    # of size nn and vec2 is a vector of size mm , 
+    # then out must be a matrix of size (n \times m)(n×m) .
+
     return ip / torch.ger(w1,w2).clamp(min=eps)
 
 
@@ -44,7 +49,7 @@ class MarginCosineProduct(nn.Module):
         in_features: size of each input sample 
         out_features: size of each output sample
         s: norm of input feature
-        m: margin
+        m: margin -> this is same as the m val used in arcface and sphereFace
     """
 
     def __init__(self, in_features, out_features, s=30.0, m=0.40):
@@ -60,7 +65,7 @@ class MarginCosineProduct(nn.Module):
 
     def loss(self):
         # --------------------------------loss function and optimizer-----------------------------
-        criterion = torch.nn.CrossEntropyLoss().to(device)
+        lossFunc = torch.nn.CrossEntropyLoss()
     
 
     def forward(self, input, label):
