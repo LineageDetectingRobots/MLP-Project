@@ -23,3 +23,4 @@ def download_vgg_weights():
             print("Cleaning up files...")
             os.system(f'rm {tar_filepath}') 
             os.system(f'rm -rf {vgg_folder}')
+
