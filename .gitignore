@@ -7,6 +7,7 @@ models/
 baseline/facenet_keras.h5
 framework/networks/vgg_face_torch/
 results/
+arcface/work_space/model/model_ir_se50.pth
 sphereface/model/sphere20a_20171020.pth
 
 # MAC files
