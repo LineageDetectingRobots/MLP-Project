@@ -242,7 +242,7 @@ def run_train_baseline():
     for idx, img_filepath in enumerate(unique_photos_filepaths):
         img2idx[img_filepath] = idx
     
-    # Create a distance column in test_df. Euclidean distance between image pairs
+    # Create a distance column in test_df. Euclidean distance between image 
     val_df["distance"] = 0
     for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
         # imgs = [test_features[img2idx[row.p1]] for img in row.img_pair.split("-")]
