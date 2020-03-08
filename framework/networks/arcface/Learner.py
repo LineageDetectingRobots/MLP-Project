@@ -15,16 +15,32 @@ import math
 import bcolz
 import sys
 from .config import get_config
-from .mtcnn import MTCNN
+from framework.networks.mtcnn import MTCNN
 
 class face_learner(object):
     def __init__(self, conf, inference=False):
         self.model = Backbone(conf.net_depth, conf.drop_ratio, conf.net_mode).to(conf.device)
         print('{}_{} model generated'.format(conf.net_mode, conf.net_depth))
         self.threshold = conf.threshold
+        self.mtcnn = None
 
     def _device(self):
         return next(self.model.parameters()).device
+    
+    def load_and_resize_images(self, batch_paths):
+        image_size = 112
+        if self.mtcnn is None:
+            self.mtcnn = MTCNN(image_size=image_size)
+
+        resized_imgs = []
+        with torch.no_grad():
+            for path in batch_paths:
+                img = Image.open(path)
+                resized_img =  self.mtcnn(img)
+                if resized_img is None:
+                    continue
+                resized_imgs.append(resized_img.cpu().numpy())
+        return np.array(resized_imgs).reshape(-1, 3, image_size, image_size)
     
     def load_state(self, conf, fixed_str, from_save_folder=False, model_only=False):
         if from_save_folder:
@@ -46,20 +62,9 @@ class face_learner(object):
         self.model.load_state_dict(loaded_model)
 
     def get_features(self, image_inputs):
-        with torch.no_grad():
-            mtcnn = MTCNN()
-            conf = get_config(False)
-
-            # img = Image.open("arcface/Akhmed_Zakayev_0003.jpg")
-            
-
-            #====================== Preprocessing the image=================
-            # ready_img = mtcnn.align(img)
-            #conf.test_transform(ready_img).to(conf.device).unsqueeze(0)
-
-            # Unsqueeze adds an extra dimension to the start of the tensor
+        with torch.no_grad():         
             tensor = self.model(image_inputs)
-            embedding = tensor[0]
+            embedding = tensor
             print(tensor.shape)
             print(len(tensor))
         return embedding

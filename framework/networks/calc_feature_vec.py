@@ -78,9 +78,9 @@ def calc_features(model, photo_paths: list, batch_size=64):
         batch_paths = photo_paths[start:start + batch_size]
         # TODO: load and preprocess images
         # TODO: Make image size configurable
-        image_batch = load_and_resize_images(batch_paths, image_size = 255)
+        image_batch = model.load_and_resize_images(batch_paths)
 
-        # TODO: Normalise image batch?
+        # TODO: Normalise image batch? Add model
         image_batch = normalise(image_batch)
 
         # Move image batch to device
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         feature_vec_results = os.path.join(RESULTS_PATH, f'feature_vec_{model_name}.npy')
         if not os.path.exists(feature_vec_results):
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
-            print(photo_folder)
+            # print(photo_folder)
             feature_vecs = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])
             np.save(feature_vec_results, feature_vecs)
         else:
