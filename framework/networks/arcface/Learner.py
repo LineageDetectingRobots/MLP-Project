@@ -63,10 +63,9 @@ class face_learner(object):
 
     def get_features(self, image_inputs):
         with torch.no_grad():         
-            tensor = self.model(image_inputs)
-            embedding = tensor
-            print(tensor.shape)
-            print(len(tensor))
+            embedding = self.model(image_inputs)
+            print(embedding.shape)
+            print(len(embedding))
         return embedding
 
         

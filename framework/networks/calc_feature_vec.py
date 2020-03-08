@@ -1,4 +1,5 @@
 import os
+import pickle
 import pandas as pd
 import numpy as np
 from pprint import pprint
@@ -10,7 +11,7 @@ import torch
 import torch.nn as nn
 import argparse
 import arcface.my_face_verify as arcface
-from sphereface import my_sphereface
+from framework.networks.sphereface.my_sphereface import get_model as get_sphereface_model
 # import as facenet
 from vgg_face import VGG16
 from framework.utils.downloads import download_vgg_weights
@@ -33,7 +34,13 @@ def get_model(model_name: str) -> nn.Module:
         # Set model to eval mode when testing/evaluating
         model.eval()
     elif model_name == 'sphere_face':
-        model = my_sphereface.run_sphere
+        model = get_sphereface_model()
+        model.to(device)
+        model.eval()
+    elif model_name == 'face_net':
+        raise NotImplementedError
+    else:
+        raise RuntimeError(f'unknown model name {model_name}')
 
     return model
 
@@ -74,11 +81,13 @@ def calc_features(model, photo_paths: list, batch_size=64):
     # TODO: Find out what device the model is on
     device = model._device()
     pred_features = []
+    all_paths = []
     for start in tqdm(range(0, len(photo_paths), batch_size)):
         batch_paths = photo_paths[start:start + batch_size]
         # TODO: load and preprocess images
         # TODO: Make image size configurable
-        image_batch = model.load_and_resize_images(batch_paths)
+        image_batch, paths = model.load_and_resize_images(batch_paths)
+        all_paths = all_paths + paths
 
         # TODO: Normalise image batch? Add model
         image_batch = normalise(image_batch)
@@ -91,11 +100,37 @@ def calc_features(model, photo_paths: list, batch_size=64):
         pred_features.append(feature_batch_numpy)
     # TODO: Do l2 normalisation???
     features = l2_normalisation(np.concatenate(pred_features))
-    return features
+    return features, all_paths
+
+def remove_rows(cross_val_df, paths):
+    remove_idxs = set()
+    for idx, row in tqdm(cross_val_df.iterrows()):
+        if not any(row.F in path for path in paths):
+            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['F'] == row.F])))
+        
+        if not any(row.M in path for path in paths):
+            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['M'] == row.M])))
+        
+        if not any(row.C in path for path in paths):
+            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['C'] == row.C])))
+    print('num_rows_removed = ,', len(list(remove_idxs)))
+    new_df = cross_val_df.drop(list(remove_idxs))
+    return new_df
+    # TODO: remove rows given indexes
+            
+
+def get_filepath_to_vector(feature_vecs, filepaths):
+    base_filepaths = [path[-27:] for path in filepaths]
+    print(base_filepaths[0])
+    conversion_dict = {}
+    for i, base_path in enumerate(base_filepaths):
+        conversion_dict[base_path] = feature_vecs[i]
+    return conversion_dict
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
-    parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
+    parser.add_argument("-m", "--model", help="which face rec model", default='sphere_face', type=str)
 
 
     args = parser.parse_args()
@@ -105,17 +140,26 @@ if __name__ == '__main__':
 
     # Get our file we are using for testing
     cross_val_csv = os.path.join(DATASET_PATH, 'fiw', 'tripairs', '5_cross_val.csv')
+    new_val_csv = os.path.join(DATASET_PATH, 'fiw', 'tripairs', f'{model_name}_5_cross_val.csv')
     cross_val_df = pd.read_csv(cross_val_csv)
+    # print(cross_val_df)
     unique_photo_filepaths = get_unique_images(cross_val_df)
-    print(unique_photo_filepaths)
-    # return
+    # print(unique_photo_filepaths)
     
     with torch.no_grad():
-        feature_vec_results = os.path.join(RESULTS_PATH, f'feature_vec_{model_name}.npy')
+        feature_vec_results = os.path.join(RESULTS_PATH, f'mappings_{model_name}.pickle')
         if not os.path.exists(feature_vec_results):
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
             # print(photo_folder)
-            feature_vecs = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])
-            np.save(feature_vec_results, feature_vecs)
+            feature_vecs, paths = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])
+            # Some photos might not be preprocessed, we need to update the csv file to reflect this
+            new_csv = remove_rows(cross_val_df, paths)
+            new_csv.to_csv(new_val_csv)
+            # Create a mapping from img_filepath to vector
+            filepath_map = get_filepath_to_vector(feature_vecs, paths)
+            # save all as one tuple
+            data = (feature_vecs, filepath_map)
+            with open(feature_vec_results, 'wb') as handle:
+                pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
             raise RuntimeError(f'Feature vectors already exist for model {model_name}')
