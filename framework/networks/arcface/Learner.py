@@ -14,6 +14,8 @@ from torchvision import transforms as trans
 import math
 import bcolz
 import sys
+from .config import get_config
+from .mtcnn import MTCNN
 
 class face_learner(object):
     def __init__(self, conf, inference=False):
@@ -42,6 +44,25 @@ class face_learner(object):
             " and add model_ir_se50.pth to arcface/work_space/model/")
             sys.exit(0)
         self.model.load_state_dict(loaded_model)
+
+    def get_features(self, image_inputs):
+        with torch.no_grad():
+            mtcnn = MTCNN()
+            conf = get_config(False)
+
+            # img = Image.open("arcface/Akhmed_Zakayev_0003.jpg")
+            
+
+            #====================== Preprocessing the image=================
+            # ready_img = mtcnn.align(img)
+            #conf.test_transform(ready_img).to(conf.device).unsqueeze(0)
+
+            # Unsqueeze adds an extra dimension to the start of the tensor
+            tensor = self.model(image_inputs)
+            embedding = tensor[0]
+            print(tensor.shape)
+            print(len(tensor))
+        return embedding
 
         
 

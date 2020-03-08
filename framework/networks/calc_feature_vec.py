@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import argparse
 import arcface.my_face_verify as arcface
-# import as sphereface
+from sphereface import my_sphereface
 # import as facenet
 from vgg_face import VGG16
 from framework.utils.downloads import download_vgg_weights
@@ -32,6 +32,8 @@ def get_model(model_name: str) -> nn.Module:
         model.load_weights(model_path)
         # Set model to eval mode when testing/evaluating
         model.eval()
+    elif model_name == 'sphere_face':
+        model = my_sphereface.run_sphere
 
     return model
 
@@ -112,6 +114,7 @@ if __name__ == '__main__':
         feature_vec_results = os.path.join(RESULTS_PATH, f'feature_vec_{model_name}.npy')
         if not os.path.exists(feature_vec_results):
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
+            print(photo_folder)
             feature_vecs = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])
             np.save(feature_vec_results, feature_vecs)
         else:
