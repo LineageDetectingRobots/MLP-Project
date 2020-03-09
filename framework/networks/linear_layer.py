@@ -34,7 +34,7 @@ class BaseNetwork(nn.Module):
         next_ = next(self.parameters())
         return next_.is_cuda
 
-    def loss(self):
+    def loss(self, y_hat, y):
         raise NotImplementedError
 
     def build_network(self):
@@ -43,8 +43,19 @@ class BaseNetwork(nn.Module):
     def forward(self):
         raise NotImplementedError
 
-    def train_a_batch(self, x, label):
-        raise NotImplementedError
+    def train_a_batch(self, x, y):
+        self.train()
+        self.optimizer.zero_grad()
+        y_hat = self(x)
+        loss = self.loss(y_hat, y)
+        loss.backward()
+        self.optimizer.step()
+
+        # TODO: calc acc correct over total
+        acc = sum([1 if y_hat == y else 0 for y_hat, y in zip(y_hat, y)])/len(y)
+
+        return {'train_loss': loss,
+                'acc': acc}
 
 class MarginCosineProduct(nn.Module):
     r"""Implement of large margin cosine distance: :
