@@ -33,6 +33,7 @@ class face_learner(object):
             self.mtcnn = MTCNN(image_size=image_size)
 
         resized_imgs = []
+        paths = []
         with torch.no_grad():
             for path in batch_paths:
                 img = Image.open(path)
@@ -40,7 +41,8 @@ class face_learner(object):
                 if resized_img is None:
                     continue
                 resized_imgs.append(resized_img.cpu().numpy())
-        return np.array(resized_imgs).reshape(-1, 3, image_size, image_size)
+                paths.append(path)
+        return np.array(resized_imgs).reshape(-1, 3, image_size, image_size), paths
     
     def load_state(self, conf, fixed_str, from_save_folder=False, model_only=False):
         if from_save_folder:

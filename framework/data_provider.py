@@ -1,5 +1,6 @@
 
 import os
+import pickle
 from skimage import io
 import pandas as pd
 import torch.utils.data as data
@@ -79,9 +80,10 @@ class FIW_kaggle(data.Dataset):
 
 
 class FIW(data.Dataset):
-    def __init__(self, path_to_dataset: str, path_to_split_csv: str, folds: list):
+    def __init__(self, path_to_split_csv: str, path_to_mappings: str,  folds: list):
         # NOTE: Expected that dataset already contains 50/50 split of relation / non-relation
-        self.ds_path = path_to_dataset
+        # TODO: Get mappings and feature vecs
+        self.feature_vecs, self.mappings = self.get_mappings_and_feature_vec(path_to_mappings)
 
         # Expects cross fold
         self.dataset = pd.read_csv(path_to_split_csv)
@@ -91,6 +93,10 @@ class FIW(data.Dataset):
                 drop_idxs.append(idx)
         self.dataset.drop(self.dataset.index[drop_idxs], inplace=True)
 
+    def get_mappings_and_feature_vec(self, path_to_mappings: str):
+        with open(path_to_mappings, 'rb') as file:
+            feature_vecs, mappings = pickle.load(file)
+        return feature_vecs, mappings
     
     def __len__(self):
         return len(self.dataset)
@@ -109,13 +115,14 @@ class FIW(data.Dataset):
             raise RuntimeError('Mother and father family ID should be the same. index = ', idx)
     
     def _get_tripair(self, idx):
-        father_path = os.path.join(self.ds_path, self.dataset.iloc[idx].F)
-        mother_path = os.path.join(self.ds_path, self.dataset.iloc[idx].M)
-        child_path = os.path.join(self.ds_path, self.dataset.iloc[idx].C)
+        father_path = self.dataset.iloc[idx].F
+        mother_path = self.dataset.iloc[idx].M
+        child_path = self.dataset.iloc[idx].C
 
-        father = io.imread(father_path)
-        mother = io.imread(mother_path)
-        child = io.imread(child_path)
+        father = self.mappings[father_path]
+        mother = self.mappings[mother_path]
+        child = self.mappings[child_path]
+
         return [father, mother, child]
 
     def __getitem__(self, idx):
@@ -123,12 +130,16 @@ class FIW(data.Dataset):
 
 if __name__ == "__main__":
     # EXAMPLE USAGE for tripairs
-    from framework import DATASET_PATH
-    data_path = os.path.join(DATASET_PATH, "fiw", 'FIDs')
-    csv_path = os.path.join(DATASET_PATH, "fiw", "tripairs", '5_cross_val.csv')
-    fiw_dataset = FIW(data_path, csv_path, folds=[1,2,3,4])
-    fam_list, label = fiw_dataset.__getitem__(128)
+    from framework import DATASET_PATH, RESULTS_PATH
+    # NOTE: Netowrk name is required to known which network produces the feature vectors
+    model_name = 'sphere_face'
+    csv_path = os.path.join(DATASET_PATH, 'fiw', 'tripairs', f'{model_name}_5_cross_val.csv')
+    mappings_path = os.path.join(RESULTS_PATH, f'mappings_{model_name}.pickle')
+    train_folds = [1, 2, 3, 4]
+    test_folds = [5]
+    train_dataset = FIW(csv_path, mappings_path, train_folds) 
+    test_dataset = FIW(csv_path, mappings_path, test_folds)
+    fam_list, label = train_dataset.__getitem__(128)
     print('is_fam = ', label)
     for fam in fam_list:
-        plt.imshow(fam)
-        plt.show()
+        print(fam)

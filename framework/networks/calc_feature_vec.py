@@ -12,6 +12,7 @@ import torch.nn as nn
 import argparse
 import arcface.my_face_verify as arcface
 from framework.networks.sphereface.my_sphereface import get_model as get_sphereface_model
+from framework.networks.inception_resnet_v1 import get_vgg_face2_model
 # import as facenet
 from vgg_face import VGG16
 from framework.utils.downloads import download_vgg_weights
@@ -37,7 +38,9 @@ def get_model(model_name: str) -> nn.Module:
         model = get_sphereface_model()
         model.to(device)
         model.eval()
-    elif model_name == 'face_net':
+    elif model_name == 'vgg_face2':
+        model = get_vgg_face2_model()
+        model.to(device)
         raise NotImplementedError
     else:
         raise RuntimeError(f'unknown model name {model_name}')
@@ -51,14 +54,14 @@ def l2_normalisation(x, axis=-1, epsilon=1e-10):
     output = x / np.sqrt(np.maximum(np.sum(np.square(x), axis=axis, keepdims=True), epsilon))
     return output
 
-def load_and_resize_images(filepaths, image_size=244):
-    resized_images = []
-    for filepath in filepaths:
-        img = imread(filepath)
-        aligned = resize(img, (image_size, image_size), mode='reflect')
+# def load_and_resize_images(filepaths, image_size=244):
+#     resized_images = []
+#     for filepath in filepaths:
+#         img = imread(filepath)
+#         aligned = resize(img, (image_size, image_size), mode='reflect')
 
-        resized_images.append(aligned)
-    return np.array(resized_images).reshape(-1, 3, image_size, image_size)
+#         resized_images.append(aligned)
+#     return np.array(resized_images).reshape(-1, 3, image_size, image_size)
 
 def normalise(imgs):
     # TODO: const values for whole set not just batch
@@ -130,8 +133,8 @@ def get_filepath_to_vector(feature_vecs, filepaths):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
-    parser.add_argument("-m", "--model", help="which face rec model", default='sphere_face', type=str)
-
+    parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
+    # TODO: test vggface2
 
     args = parser.parse_args()
 
