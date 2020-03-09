@@ -81,14 +81,12 @@ def normalise(imgs):
     return normalised_imgs
 
 def calc_features(model, photo_paths: list, batch_size=64):
-    # TODO: Find out what device the model is on
     device = model._device()
+
     pred_features = []
     all_paths = []
     for start in tqdm(range(0, len(photo_paths), batch_size)):
         batch_paths = photo_paths[start:start + batch_size]
-        # TODO: load and preprocess images
-        # TODO: Make image size configurable
         image_batch, paths = model.load_and_resize_images(batch_paths)
         all_paths = all_paths + paths
 
@@ -97,7 +95,6 @@ def calc_features(model, photo_paths: list, batch_size=64):
 
         # Move image batch to device
         image_inputs = torch.from_numpy(image_batch).float().to(device)
-        # TODO: call correctly, could be forward
         feature_batch = model.get_features(image_inputs)
         feature_batch_numpy = feature_batch.cpu().numpy()
         pred_features.append(feature_batch_numpy)
@@ -119,7 +116,6 @@ def remove_rows(cross_val_df, paths):
     print('num_rows_removed = ,', len(list(remove_idxs)))
     new_df = cross_val_df.drop(list(remove_idxs))
     return new_df
-    # TODO: remove rows given indexes
             
 
 def get_filepath_to_vector(feature_vecs, filepaths):
@@ -133,7 +129,7 @@ def get_filepath_to_vector(feature_vecs, filepaths):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
-    parser.add_argument("-m", "--model", help="which face rec model", default='arc_face', type=str)
+    parser.add_argument("-m", "--model", help="which face rec model", default='vgg_face2', type=str)
     # TODO: test vggface2
 
     args = parser.parse_args()

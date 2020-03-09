@@ -13,9 +13,7 @@ from tqdm import tqdm
 from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
 from framework.utils.downloads import download_vgg_weights
 
-# TODO: Enable this if you have a decent GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = "cpu"
 
 
 class VGG16(nn.Module):
@@ -97,7 +95,6 @@ class VGG16(nn.Module):
         """
         When top layer is removed can be used to get similarity metric between faces
         """
-        # TODO: Other study in Kaggle comp. used avg pool
         # https://www.kaggle.test_df = pd.read_csv("../input/recognizing-faces-in-the-wild/sample_submission.csv")om/ateplyuk/vggface-baseline-in-keras?fbclid=IwAR12q3OsejMsQFggEWl1Rb2LcgIeKBszW8k6fQ3pEFPv5pvF-t3dBLtKPY0
         x = F.relu(self.conv_1_1(x))
         x = F.relu(self.conv_1_2(x))
