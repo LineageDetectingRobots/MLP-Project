@@ -43,6 +43,9 @@ class BaseNetwork(nn.Module):
     def forward(self):
         raise NotImplementedError
 
+    def train_a_batch(self, x, label):
+        raise NotImplementedError
+
 class MarginCosineProduct(nn.Module):
     r"""Implement of large margin cosine distance: :
     Args:
