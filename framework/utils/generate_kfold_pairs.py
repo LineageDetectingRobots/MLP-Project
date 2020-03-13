@@ -45,7 +45,6 @@ def generate_kfold_pairs(n_folds: int, filepath: str):
 
     return pd.concat(df_splits)
 
-# TODO: Need to add non family pairs
 def add_non_family_relations(n_folds: int, dataframe: pd.DataFrame):
     """
     This function will add non family relations as pairs and label them accordingly

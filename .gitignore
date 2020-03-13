@@ -7,7 +7,8 @@ models/
 baseline/facenet_keras.h5
 framework/networks/vgg_face_torch/
 results/
-sphereface/model/sphere20a_20171020.pth
+framework/networks/arcface/work_space/model/model_ir_se50.pth
+framework/networks/sphereface/model/sphere20a_20171020.pth
 
 # MAC files
 *.DS_Store

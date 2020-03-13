@@ -16,3 +16,7 @@ torchfile
 kaggle
 notebook>=5.3
 ipywidgets>=7.2
+easydict
+bcolz
+mxnet
+progress
