@@ -17,10 +17,41 @@ def cosine_sim(x1, x2, dim=1, eps=1e-8):
 
     return ip / torch.ger(w1,w2).clamp(min=eps)
 
+def _get_loss_func(function_name: str)
+    if function_name == 'cross_entropy':
+        return nn.CrossEntropyLoss(reduction='mean')
+
+    if function_name == 'mse':
+        return nn.MSELoss()
+    
+    if function_name == 'nll':
+        return nn.NLLLoss()
+    
+    if function_name == 'TripletMarginLoss':
+        return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
+    
+
 
 def _get_activation_func(function_name: str):
+
     if function_name == 'relu':
         return nn.ReLU()
+
+    elif activation_func = 'lrelu':
+            return nn.LeakyReLU()
+        
+    elif activation_func = 'prelu':
+        return nn.PReLU(num_parameters=1, init=0.25)
+    
+    elif activation_func = 'lrelu':
+        return nn.LeakyReLU()
+
+    elif activation_func = 'elu':
+            return nn.ELU(alpha=1.0, inplace=False)
+
+    elif activation_func = 'softplus':
+            return nn.Softplus(beta=1, threshold=20)
+
     else:
         raise RuntimeError(f'Unknown activation func = {function_name}')
 
@@ -99,7 +130,8 @@ class FullyConnectedLayer(nn.Module):
         
         if self.use_batch_norm:
             self.bn = nn.BatchNorm1d(self.output_size)
-    
+        
+      
     def forward(self, x):
         out = self.dropout(x) if hasattr(self, 'dropout') else x
         out = self.linear(out)
@@ -113,9 +145,7 @@ class MLP(BaseNetwork):
     def __init__(self, network_settings):
         super().__init__(network_settings)
         # self.layer_size = network_settings['layer_sizes']
-        # NOTE: layer config does not include input, this is added later
-        self.layer_config = network_settings['layer_config'] if 'layer_config' in network_settings else []
-        self.use_batch_norm = network_settings["use_batch_norm"]
+        # NOTE: layer config doeslayer_configwork_settings["use_batch_norm"]
         self.activation_func = _get_activation_func(network_settings["activation_func"])
         self.use_bias = network_settings["use_bias"]
         self.dropout_value = network_settings["dropout_val"]
@@ -180,7 +210,10 @@ class MarginCosineProduct(BaseNetwork):
         lossFunc = torch.nn.CrossEntropyLoss()
     
 
-    def forward(self, input, label):
+    def forw + ', s=' + str(self.s) \
+               + ', m=' + str(self.m) + ')'
+
+ard(self, input, label):
         cosine = cosine_sim(input, self.weight)
 
         one_hot.scatter_(1, label.view(-1, 1), 1.0)
