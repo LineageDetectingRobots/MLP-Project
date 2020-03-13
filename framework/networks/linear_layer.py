@@ -17,15 +17,21 @@ def cosine_sim(x1, x2, dim=1, eps=1e-8):
     return ip / torch.ger(w1,w2).clamp(min=eps)
 
 
+def _get_activation_func(function_name: str):
+    if function_name == 'relu':
+        return nn.ReLU()
+    else:
+        raise RuntimeError(f'Unknown activation func = {function_name}')
+
 class BaseNetwork(nn.Module):
-    def __init__(self, input_size: tuple, output_size: int):
-        self.input_size = input_size
-        self.output_size = output_size
+    def __init__(self, network_settings: dict):
+        super().__init__()
+        self.input_size = network_settings['input_size']
+        self.output_size = network_settings['output_size']
         # TODO: Choice of activation function
         # TODO: choice of loss function
         # TODO: Choice of optimiser
         # TODO: batch norm, dropout, use biases?
-        self.build_network()
     
     def _device(self):
         return next(self.parameters()).device
@@ -54,10 +60,88 @@ class BaseNetwork(nn.Module):
         # TODO: calc acc correct over total
         acc = sum([1 if y_hat == y else 0 for y_hat, y in zip(y_hat, y)])/len(y)
 
-        return {'train_loss': loss,
+        return {'loss': loss,
                 'acc': acc}
 
-class MarginCosineProduct(nn.Module):
+
+
+class FullyConnectedLayer(nn.Module):
+    def __init__(self, input_size, output_size, activation_func = None, use_batch_norm = False, use_bias=True,  dropout = 0.0):
+        super().__init__()
+        self.input_size = input_size
+        self.output_size = output_size
+        if activation_func is not None:
+            self.activation_func = activation_func
+        self.use_batch_norm = use_batch_norm
+        self.dropout_val = dropout
+        self.use_bias = use_bias
+
+        self.build_network()
+    
+    def build_network(self):
+        if self.dropout_val > 0.0:
+            self.dropout = nn.Dropout(self.dropout_val)
+        
+        self.linear = nn.Linear(in_features=self.input_size,
+                                out_features=self.output_size,
+                                bias=self.use_bias)
+        
+        if self.use_batch_norm:
+            self.bn = nn.BatchNorm1d(self.output_size)
+    
+    def forward(self, x):
+        out = self.dropout(x) if hasattr(self, 'dropout') else x
+        out = self.linear(out)
+        out = self.bn(out) if hasattr(self, 'bn') else out
+        out = self.activation_func(out) if hasattr(self, 'activation_func') else out
+        return out
+
+
+class MLP(BaseNetwork):
+
+    def __init__(self, network_settings):
+        super().__init__(network_settings)
+        # self.layer_size = network_settings['layer_sizes']
+        # NOTE: layer config does not include input, this is added later
+        self.layer_config = network_settings['layer_config'] if 'layer_config' in network_settings else []
+        self.use_batch_norm = network_settings["use_batch_norm"]
+        self.activation_func = _get_activation_func(network_settings["activation_func"])
+        self.use_bias = network_settings["use_bias"]
+        self.dropout_value = network_settings["dropout_val"]
+
+        self.layers = []
+        self.build_network()
+        
+    
+    
+    def build_network(self):
+        if self.layer_config == []:
+            # TODO: add hidden layers
+            raise NotImplementedError
+        else:
+            self.layer_config = [self.input_size] + self.layer_config
+        
+        for i in range(len(self.layer_config) - 1):
+            input_size = self.layer_config[i]
+            output_size = self.layer_config[i + 1]
+            layer = FullyConnectedLayer(input_size, output_size, self.activation_func, self.use_bias, self.use_batch_norm, self.dropout_value)
+            self.layers.append(layer)
+
+        # Add final output layer
+        final_layer = FullyConnectedLayer(self.layer_config[-1], self.output_size, None, self.use_bias, self.use_batch_norm, self.dropout_value)
+        self.layers.append(final_layer)
+
+    def loss(self, y_hat, y):
+        loss = nn.BCELoss()(y_hat, y)
+        return loss
+    
+    def forward(self, x):
+        out = x
+        for layer in self.layers:
+            out = layer(out)
+        return out
+
+class MarginCosineProduct(BaseNetwork):
     r"""Implement of large margin cosine distance: :
     Args:
         in_features: size of each input sample 

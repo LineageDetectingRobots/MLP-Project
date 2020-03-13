@@ -70,7 +70,7 @@ def normalise(imgs):
     normalised_imgs = (imgs - mean) / std_adj
     return normalised_imgs
 
-def calc_features(model, photo_paths: list, batch_size=64):
+def calc_features(model, photo_paths: list, batch_size=128):
     device = model._device()
 
     pred_features = []
@@ -94,15 +94,30 @@ def calc_features(model, photo_paths: list, batch_size=64):
 
 def remove_rows(cross_val_df, paths):
     remove_idxs = set()
+    base_filepaths = [path[-27:] for path in paths]
     for idx, row in tqdm(cross_val_df.iterrows()):
-        if not any(row.F in path for path in paths):
-            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['F'] == row.F])))
+        is_father = False
+        is_mother = False
+        is_child = False
+        for path in base_filepaths:
+            if row.F == path:
+                print('is_father')
+                is_father = True
+            
+            if row.M == path:
+                print('is_mother')
+                is_mother = True
+            
+            if row.C == path:
+                print('is_child')
+                is_child == True
+            
+            if is_father and is_mother and is_child:
+                print('breaking')
+                break
         
-        if not any(row.M in path for path in paths):
-            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['M'] == row.M])))
-        
-        if not any(row.C in path for path in paths):
-            remove_idxs.update(set(list(cross_val_df.index[cross_val_df['C'] == row.C])))
+        if not is_father or not is_mother or not is_child:
+            remove_idxs.add(idx)
     print('num_rows_removed = ,', len(list(remove_idxs)))
     new_df = cross_val_df.drop(list(remove_idxs))
     return new_df
@@ -120,9 +135,11 @@ def get_filepath_to_vector(feature_vecs, filepaths):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument("-m", "--model", help="which face rec model", default='vgg_face2', type=str)
+    parser.add_argument("-o", "--overwrite", help="Overwrite feature vec mapping", dest='overwrite', action='store_true')
     # TODO: test vggface2, vgg_face
 
     args = parser.parse_args()
+    overwrite = args.overwrite
 
     model_name = args.model
     model = get_model(model_name)
@@ -137,7 +154,7 @@ if __name__ == '__main__':
     
     with torch.no_grad():
         feature_vec_results = os.path.join(RESULTS_PATH, f'mappings_{model_name}.pickle')
-        if not os.path.exists(feature_vec_results):
+        if (not os.path.exists(feature_vec_results)) or overwrite:
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
             # print(photo_folder)
             feature_vecs, paths = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])

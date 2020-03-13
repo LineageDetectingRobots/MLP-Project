@@ -1,7 +1,12 @@
+import os
+import tqdm
+from sklearn.metrics import roc_auc_score
+import numpy as np
 
 from torch.utils.data import DataLoader
 
 from framework import DATASET_PATH, RESULTS_PATH
+from framework.networks.linear_layer import MLP
 from framework.data_provider import FIW
 from framework.config.config_reader import ConfigReader
 from framework.utils.gen_utils import get_data_loader
@@ -13,9 +18,16 @@ def check_network_name(network_name: str):
 
 def get_model(model_settings: dict):
     model_name = model_settings['model_name']
-    # TODO: Given model name, get a model
+    model = None
+    
+    # Implement for other models
+    if model_name == 'MLP':
+        model = MLP(model_settings)
+    else:
+        raise RuntimeError(f'unkown model name = {model_name}')
 
-    raise NotImplementedError
+    return model
+
 
 def train(model, train_dataset, training_settings):
     batch_size = training_settings['batch_size']
@@ -28,10 +40,18 @@ def train(model, train_dataset, training_settings):
     
     progress = tqdm.tqdm(range(1, num_of_epochs + 1))
     # TODO: We might need to drop the last element
-    dataloader = get_data_loader(train_dataset, batch_size, cuda)
+    dataloader = get_data_loader(train_dataset, batch_size, cuda, drop_last=True)
     for epoch in range(1, num_of_epochs + 1):
+        epoch_loss = 0
+        epoch_acc = 0
         for i, train_data in enumerate(dataloader, 1):
             stats = model.train_a_batch(train_data)
+
+            epoch_loss += stats['loss']
+            epoch_acc += stats['acc']
+
+        print('Training loss = {}'.format(epoch_loss/i))
+        print('Training acc = {}'.format(epoch_acc/i))
         
         # TODO: Could run on test set to see how it is learning, get some stats
         progress.update(1)
@@ -44,7 +64,8 @@ def get_datasets(network_name: str):
     test_folds = [5]
     train_dataset = FIW(csv_path, mappings_path, train_folds) 
     test_dataset = FIW(csv_path, mappings_path, test_folds)
-    return train_dataset, test_dataset
+    vec_length = train_dataset.__getitem__(0)[0][0].shape[0]
+    return train_dataset, test_dataset, vec_length
 
 def eval(model, test_dataset):
     # Evals the model based on test set to produce metrics for use
@@ -54,14 +75,18 @@ def eval(model, test_dataset):
     # TODO: get if we are using gpu or not
     cuda = True
     dataloader = get_data_loader(test_dataset, 1, cuda)
-
+    y_hats = []
+    ys = []
     for i, data in enumerate(dataloader, 1):
         x = data[0]
         y = data[1]
 
         # y_hat should be predictions 1 or 0
-        y_hat = model(x)
-    raise NotImplementedError
+        y_hat = model(x).cpu().numpy()
+        y_hats.append(y_hat)
+        ys.append(y.cpu().numpy())
+    
+    return roc_auc_score(np.array(ys), np.array(y_hats))
 
 def run_experiment(profile_name: str):
     # TODO: Get configurations, from config file or something
@@ -70,10 +95,11 @@ def run_experiment(profile_name: str):
     # Get feature vector data
     network_name = config_data['data_settings']['network_name']
     check_network_name(network_name)
-    train_dataset, test_dataset = get_datasets(network_name)
+    train_dataset, test_dataset, vec_length = get_datasets(network_name)
     
     # Get the model we are going to use for training
     model_settings = config_data['model_settings']
+    model_settings['input_size'] = 3 * vec_length
     model = get_model(model_settings)
     
     # Train the model

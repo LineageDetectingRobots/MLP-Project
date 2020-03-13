@@ -3,7 +3,7 @@ DEFAULT:
   experiment_name: default_experiment
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
-    network_name: "sphere_face"
+    network_name: "vgg_face2"
   training_settings:
     batch_size: 64
     epochs: 100
@@ -11,7 +11,13 @@ DEFAULT:
     # Could add checkpoints to load or save the model
   # We could be experimenting with different networks this is
   model_settings:
-    model_name: "something"
+    model_name: "MLP"
+    output_size: 1
+    layer_config: [768, 384, 192, 96, 48, 24]
+    use_batch_norm: false
+    activation_func: relu
+    use_bias: true
+    dropout_val: 0.0
     # Image info could go here, channels, image height/width
     # num layers, output dim etc. This can all be configured
   evaluation:
