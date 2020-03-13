@@ -3,6 +3,7 @@ import tqdm
 from sklearn.metrics import roc_auc_score
 import numpy as np
 
+import torch
 from torch.utils.data import DataLoader
 
 from framework import DATASET_PATH, RESULTS_PATH
@@ -45,7 +46,13 @@ def train(model, train_dataset, training_settings):
         epoch_loss = 0
         epoch_acc = 0
         for i, train_data in enumerate(dataloader, 1):
-            stats = model.train_a_batch(train_data)
+            # TODO: move train_data to device?
+            batch_size = train_data[0][0].size()[0]
+            len_vec = train_data[0][0].size()[1]
+            
+            x = torch.stack(train_data[0]).view(batch_size, 3*len_vec).to(model._device(), dtype=torch.float)
+            y = train_data[1].to(model._device(), dtype=torch.long)
+            stats = model.train_a_batch(x, y)
 
             epoch_loss += stats['loss']
             epoch_acc += stats['acc']
@@ -92,6 +99,10 @@ def run_experiment(profile_name: str):
     # TODO: Get configurations, from config file or something
     config_data = ConfigReader(profile_name).config_data
 
+    use_cuda = config_data["use_cuda"]
+    cuda = torch.cuda.is_available() and use_cuda
+    device = torch.device("cuda" if cuda else "cpu")
+
     # Get feature vector data
     network_name = config_data['data_settings']['network_name']
     check_network_name(network_name)
@@ -100,7 +111,7 @@ def run_experiment(profile_name: str):
     # Get the model we are going to use for training
     model_settings = config_data['model_settings']
     model_settings['input_size'] = 3 * vec_length
-    model = get_model(model_settings)
+    model = get_model(model_settings).to(device)
     
     # Train the model
     training_settings = config_data['training_settings']

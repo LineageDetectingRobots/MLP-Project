@@ -5,15 +5,16 @@ import numpy as np
 from pprint import pprint
 from imageio import imread
 from skimage.transform import resize
+import argparse
+import re
 
 from tqdm import tqdm
 import torch
 import torch.nn as nn
-import argparse
+
 import framework.networks.arcface.my_face_verify as arcface
 from framework.networks.sphereface.my_sphereface import get_model as get_sphereface_model
 from framework.networks.inception_resnet_v1 import get_vgg_face2_model
-# import as facenet
 from framework.networks.vgg_face import VGG16
 from framework.utils.downloads import download_vgg_weights
 from framework import MODEL_PATH
@@ -47,7 +48,7 @@ def get_model(model_name: str) -> nn.Module:
     return model
 
 def get_unique_images(dataframe: pd.DataFrame):
-    return dataframe.F.append(dataframe.M).append(dataframe.C).unique()
+    return (dataframe.F.append(dataframe.M).append(dataframe.C)).unique()
 
 def l2_normalisation(x, axis=-1, epsilon=1e-10):
     output = x / np.sqrt(np.maximum(np.sum(np.square(x), axis=axis, keepdims=True), epsilon))
@@ -92,40 +93,36 @@ def calc_features(model, photo_paths: list, batch_size=128):
     features = l2_normalisation(np.concatenate(pred_features))
     return features, all_paths
 
-def remove_rows(cross_val_df, paths):
+def get_base_filepath(paths):
+    base_filepaths = []
+    for path in paths:
+        result = re.search('FIDs/(.*)', path).group(1)
+        base_filepaths.append(result)
+    return base_filepaths
+
+def remove_rows(cross_val_df, paths, all_paths):
+    base_filepaths = get_base_filepath(paths)
+    removed_paths = get_base_filepath(all_paths)
+    no_img_path = []
+    for path in removed_paths:
+        if path not in base_filepaths:
+            no_img_path.append(path)
+
     remove_idxs = set()
-    base_filepaths = [path[-27:] for path in paths]
     for idx, row in tqdm(cross_val_df.iterrows()):
-        is_father = False
-        is_mother = False
-        is_child = False
-        for path in base_filepaths:
-            if row.F == path:
-                print('is_father')
-                is_father = True
-            
-            if row.M == path:
-                print('is_mother')
-                is_mother = True
-            
-            if row.C == path:
-                print('is_child')
-                is_child == True
-            
-            if is_father and is_mother and is_child:
-                print('breaking')
+        for path in no_img_path:
+            if row.F == path or row.M == path or row.C == path:
+                remove_idxs.add(idx)
+                print('removing row = {}'.format(idx))
                 break
-        
-        if not is_father or not is_mother or not is_child:
-            remove_idxs.add(idx)
+            
     print('num_rows_removed = ,', len(list(remove_idxs)))
     new_df = cross_val_df.drop(list(remove_idxs))
     return new_df
             
 
 def get_filepath_to_vector(feature_vecs, filepaths):
-    base_filepaths = [path[-27:] for path in filepaths]
-    print(base_filepaths[0])
+    base_filepaths = get_base_filepath(filepaths)
     conversion_dict = {}
     for i, base_path in enumerate(base_filepaths):
         conversion_dict[base_path] = feature_vecs[i]
@@ -157,9 +154,10 @@ if __name__ == '__main__':
         if (not os.path.exists(feature_vec_results)) or overwrite:
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
             # print(photo_folder)
-            feature_vecs, paths = calc_features(model, [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths])
+            all_paths = [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths]
+            feature_vecs, paths = calc_features(model, all_paths)
             # Some photos might not be preprocessed, we need to update the csv file to reflect this
-            new_csv = remove_rows(cross_val_df, paths)
+            new_csv = remove_rows(cross_val_df, paths, all_paths)
             new_csv.to_csv(new_val_csv)
             # Create a mapping from img_filepath to vector
             filepath_map = get_filepath_to_vector(feature_vecs, paths)

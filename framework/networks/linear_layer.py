@@ -1,4 +1,5 @@
 import torch
+from torch import optim
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter
@@ -23,6 +24,15 @@ def _get_activation_func(function_name: str):
     else:
         raise RuntimeError(f'Unknown activation func = {function_name}')
 
+def _get_optimiser(optimiser_name: str):
+    if optimiser_name == 'sgd':
+        optimizer = optim.SGD
+    elif optimiser_name == 'adam':
+        optimizer = optim.Adam
+    else:
+        raise RuntimeError(f'Unknown optimiser = {optimiser_name}')
+    
+    return optimizer
 class BaseNetwork(nn.Module):
     def __init__(self, network_settings: dict):
         super().__init__()
@@ -58,7 +68,8 @@ class BaseNetwork(nn.Module):
         self.optimizer.step()
 
         # TODO: calc acc correct over total
-        acc = sum([1 if y_hat == y else 0 for y_hat, y in zip(y_hat, y)])/len(y)
+        pred_targets = torch.max(y_hat, dim=1)[1]
+        acc = sum([1 if pred_target == y else 0 for pred_target, y in zip(pred_targets, y)])/len(y)
 
         return {'loss': loss,
                 'acc': acc}
@@ -108,10 +119,13 @@ class MLP(BaseNetwork):
         self.activation_func = _get_activation_func(network_settings["activation_func"])
         self.use_bias = network_settings["use_bias"]
         self.dropout_value = network_settings["dropout_val"]
-
-        self.layers = []
+        
+        self.layers = nn.ModuleList()
         self.build_network()
         
+        optimizer_type = network_settings['optimiser_type']
+        learning_rate = network_settings['learning_rate']
+        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
     
     
     def build_network(self):
@@ -132,14 +146,16 @@ class MLP(BaseNetwork):
         self.layers.append(final_layer)
 
     def loss(self, y_hat, y):
-        loss = nn.BCELoss()(y_hat, y)
+        # print(y_hat.size())
+        # print(y.size())
+        loss = nn.CrossEntropyLoss()(y_hat, y)
         return loss
     
     def forward(self, x):
         out = x
         for layer in self.layers:
             out = layer(out)
-        return out
+        return F.softmax(out, dim=1)
 
 class MarginCosineProduct(BaseNetwork):
     r"""Implement of large margin cosine distance: :
