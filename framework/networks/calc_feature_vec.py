@@ -133,7 +133,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument("-m", "--model", help="which face rec model", default='vgg_face2', type=str)
     parser.add_argument("-o", "--overwrite", help="Overwrite feature vec mapping", dest='overwrite', action='store_true')
-    # TODO: test vggface2, vgg_face
 
     args = parser.parse_args()
     overwrite = args.overwrite

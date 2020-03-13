@@ -146,8 +146,6 @@ class MLP(BaseNetwork):
         self.layers.append(final_layer)
 
     def loss(self, y_hat, y):
-        # print(y_hat.size())
-        # print(y.size())
         loss = nn.CrossEntropyLoss()(y_hat, y)
         return loss
     

@@ -46,7 +46,7 @@ def train(model, train_dataset, training_settings):
         epoch_loss = 0
         epoch_acc = 0
         for i, train_data in enumerate(dataloader, 1):
-            # TODO: move train_data to device?
+            # Get batch and a features length
             batch_size = train_data[0][0].size()[0]
             len_vec = train_data[0][0].size()[1]
             
@@ -84,14 +84,18 @@ def eval(model, test_dataset):
     dataloader = get_data_loader(test_dataset, 1, cuda)
     y_hats = []
     ys = []
-    for i, data in enumerate(dataloader, 1):
-        x = data[0]
-        y = data[1]
-
-        # y_hat should be predictions 1 or 0
-        y_hat = model(x).cpu().numpy()
-        y_hats.append(y_hat)
-        ys.append(y.cpu().numpy())
+    with torch.no_grad():
+        for i, data in enumerate(dataloader, 1):
+            # Get batch and a features length
+            batch_size = data[0][0].size()[0]
+            len_vec = data[0][0].size()[1]
+            
+            x = torch.stack(data[0]).view(batch_size, 3*len_vec).to(model._device(), dtype=torch.float)
+            y = data[1].to(model._device(), dtype=torch.long)
+            y_hat = model(x)
+            pred_target = torch.max(y_hat, dim=1)[1]
+            y_hats.append(pred_target.cpu().numpy())
+            ys.append(y.cpu().numpy())
     
     return roc_auc_score(np.array(ys), np.array(y_hats))
 
@@ -118,7 +122,8 @@ def run_experiment(profile_name: str):
     train(model, train_dataset, training_settings)
 
     # Evaluate the model on test dataset
-    eval(model, test_dataset)
+    result = eval(model, test_dataset)
+    print('test_result = {}'.format(result))
 
     # TODO: Save results or model at the end
 
