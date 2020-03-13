@@ -37,4 +37,13 @@ else:
     if not os.path.exists(RESULTS_PATH):
         os.mkdir(RESULTS_PATH)
 
+
+ARC_FACE = os.path.join(dir_path, "networks", "arcface")
+if not os.path.exists(ARC_FACE):
+    os.mkdir(ARC_FACE)
+
+SPHERE_FACE = os.path.join(dir_path, "networks", "sphereface")
+if not os.path.exists(SPHERE_FACE):
+    os.mkdir(SPHERE_FACE)
+
 del os

@@ -39,8 +39,10 @@ def generate_kfold_tripairs(n_folds: int, filepath: str):
         split_df = pd.concat(split)
         labels = [1] * len(split_df)
         split_df['labels'] = labels
+        
+        # Add non-relations
         split_df = add_non_related_tripairs(split_df, len(split_df), family_ids)
-        # TODO: Add non-related matches
+        
         fold_ids = [i] * len(split_df)
         split_df['fold'] = fold_ids
         split_df['type'] = type_relation

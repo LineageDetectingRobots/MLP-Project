@@ -11,11 +11,9 @@ from scipy.spatial import distance
 from imageio import imread
 from tqdm import tqdm
 from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
-from framework.utils.downloads import download_vgg_weights, download_fiw_kaggle
+from framework.utils.downloads import download_vgg_weights
 
-# TODO: Enable this if you have a decent GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = "cpu"
 
 
 class VGG16(nn.Module):
@@ -40,6 +38,9 @@ class VGG16(nn.Module):
         self.fc7 = nn.Linear(4096, 4096)
         self.fc8 = nn.Linear(4096, 2622)
     
+    def _device(self):
+        return next(self.parameters()).device
+
     def load_weights(self, path):
         model = torchfile.load(path)
         counter = 1
@@ -59,6 +60,7 @@ class VGG16(nn.Module):
                     block += 1
                     self_layer.weight.data[...] = torch.tensor(layer.weight).view_as(self_layer.weight)[...]
                     self_layer.bias.data[...] = torch.tensor(layer.bias).view_as(self_layer.bias)[...]
+                
     
     def forward(self, x):
         """
@@ -93,7 +95,6 @@ class VGG16(nn.Module):
         """
         When top layer is removed can be used to get similarity metric between faces
         """
-        # TODO: Other study in Kaggle comp. used avg pool
         # https://www.kaggle.test_df = pd.read_csv("../input/recognizing-faces-in-the-wild/sample_submission.csv")om/ateplyuk/vggface-baseline-in-keras?fbclid=IwAR12q3OsejMsQFggEWl1Rb2LcgIeKBszW8k6fQ3pEFPv5pvF-t3dBLtKPY0
         x = F.relu(self.conv_1_1(x))
         x = F.relu(self.conv_1_2(x))
@@ -242,7 +243,7 @@ def run_train_baseline():
     for idx, img_filepath in enumerate(unique_photos_filepaths):
         img2idx[img_filepath] = idx
     
-    # Create a distance column in test_df. Euclidean distance between image pairs
+    # Create a distance column in test_df. Euclidean distance between image 
     val_df["distance"] = 0
     for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
         # imgs = [test_features[img2idx[row.p1]] for img in row.img_pair.split("-")]

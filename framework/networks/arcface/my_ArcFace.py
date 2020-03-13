@@ -138,6 +138,15 @@ class Backbone(Module):
         x = self.body(x)
         x = self.output_layer(x)
         return l2_norm(x)
+    
+    def _device(self):
+        return next(self.parameters()).device
+
+    def get_features(self,x):
+        x = self.input_layer(x)
+        x = self.body(x)
+        x = self.output_layer(x)
+        return x
 
 
 ##################################  Arcface head #############################################################

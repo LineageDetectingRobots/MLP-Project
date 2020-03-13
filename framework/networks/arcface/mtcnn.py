@@ -2,10 +2,10 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.autograd import Variable
-from mtcnn_pytorch.src.get_nets import PNet, RNet, ONet
-from mtcnn_pytorch.src.box_utils import nms, calibrate_box, get_image_boxes, convert_to_square
-from mtcnn_pytorch.src.first_stage import run_first_stage
-from mtcnn_pytorch.src.align_trans import get_reference_facial_points, warp_and_crop_face
+from .mtcnn_pytorch.src.get_nets import PNet, RNet, ONet
+from .mtcnn_pytorch.src.box_utils import nms, calibrate_box, get_image_boxes, convert_to_square
+from .mtcnn_pytorch.src.first_stage import run_first_stage
+from .mtcnn_pytorch.src.align_trans import get_reference_facial_points, warp_and_crop_face
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
 
@@ -21,6 +21,8 @@ class MTCNN():
         
     def align(self, img):
         _, landmarks = self.detect_faces(img)
+        if landmarks == []:
+            return None
         facial5points = [[landmarks[0][j],landmarks[0][j+5]] for j in range(5)]
         warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=(112,112))
         return Image.fromarray(warped_face)

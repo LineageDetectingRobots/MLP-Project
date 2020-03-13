@@ -4,10 +4,13 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torchvision import transforms as trans
 
+from framework import ARC_FACE
+
 def get_config(training = True):
     conf = edict()
-    conf.data_path = Path('data')
-    conf.work_path = Path('work_space/')
+
+    conf.data_path = Path(ARC_FACE + '/data')
+    conf.work_path = Path(ARC_FACE + '/work_space/')
     conf.model_path = conf.work_path/'model'
     conf.log_path = conf.work_path/'log'
     conf.save_path = conf.work_path/'save'
