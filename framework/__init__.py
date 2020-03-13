@@ -8,7 +8,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser()
 parser.add_argument('--cluster', metavar='C', type=int, nargs='+',
                     help='1 for mlp cluster, otherwise 0', default=0, dest='cluster')
-args = parser.parse_args()
+args = parser.parse_known_args()[0]
 
 if args.cluster == 1:
     DATASET_PATH = os.getenv('DATASET_DIR')

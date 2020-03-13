@@ -1,15 +1,17 @@
 # Treat this similarly to json
 DEFAULT:
   experiment_name: default_experiment
-  training:
-    dataset: "FIW"
-    batch_size: 32
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    batch_size: 64
     epochs: 100
     # Could add callbacks for stats
     # Could add checkpoints to load or save the model
   # We could be experimenting with different networks this is
-  network:
-    network_type: "fiw_cnn"
+  model_settings:
+    model_name: "something"
     # Image info could go here, channels, image height/width
     # num layers, output dim etc. This can all be configured
   evaluation:

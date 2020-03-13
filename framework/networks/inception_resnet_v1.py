@@ -1,10 +1,15 @@
+import os
+import requests
+from requests.adapters import HTTPAdapter
+import numpy as np
+
+from PIL import Image
 import torch
 from torch import nn
 from torch.nn import functional as F
-import requests
-from requests.adapters import HTTPAdapter
-import os
+
 from framework import DATASET_PATH
+from framework.networks.mtcnn import MTCNN
 
 
 class BasicConv2d(nn.Module):
@@ -214,7 +219,7 @@ class InceptionResnetV1(nn.Module):
         else:
             tmp_classes = self.num_classes
         
-        self.mtcnn = MTCNN(image_size=160, margin=32)
+        self.mtcnn = None
 
 
         # Define layers
@@ -276,18 +281,22 @@ class InceptionResnetV1(nn.Module):
     
     def load_and_resize_images(self, batch_paths):
         image_size = 160
+        if self.mtcnn is None:
+            self.mtcnn = MTCNN(image_size=image_size, margin=32)
         resized_imgs = []
         paths = []
         with torch.no_grad():
             for path in batch_paths:
-                img = cv2.imread(path)
+                img = Image.open(path)
                 resized_img = self.mtcnn(img)
-
-                resized_imgs.append(resized_img)
+                if resized_img is None:
+                    continue
+                resized_imgs.append(resized_img.cpu().numpy())
                 paths.append(path)
         return np.array(resized_imgs).reshape(-1, 3, image_size, image_size), paths
     
     def get_features(self, image_batch):
+        self.eval()
         with torch.no_grad():         
             embedding = self(image_batch)
             print(embedding.shape)
@@ -328,7 +337,7 @@ class InceptionResnetV1(nn.Module):
             x = F.normalize(x, p=2, dim=1)
         return x
 
-def get_vgg_face2_model(self):
+def get_vgg_face2_model():
     vggface2 = InceptionResnetV1(pretrained='vggface2')
     return vggface2
 
@@ -382,7 +391,7 @@ def get_torch_home():
 if __name__ == '__main__':
     # NOTE: example usage
     from PIL import Image
-    from framework.networks.mtcnn import MTCNN
+    
     # Used to align images and crop
     mtcnn = MTCNN(image_size=160, margin=32)
 
