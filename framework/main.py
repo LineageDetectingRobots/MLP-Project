@@ -1,6 +1,7 @@
 import os
 import tqdm
 import pickle 
+import json
 import numpy as np
 from sklearn.metrics import roc_auc_score
 from datetime import datetime
@@ -178,5 +179,11 @@ def run_experiment(profile_name: str):
     pprint(results_dict)
 
 if __name__ == '__main__':
-    profile_name = 'Jack'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    profile_path = os.path.join(dir_path, "config", "profile.json")
+    if not os.path.exists(profile_path):
+        raise RuntimeError('Please add a profile.json file in MLP-Project/config/profile.json. \n' +
+                            '       It should contain one line like this: {\"profile\": "profile_name"}')
+    with open(profile_path, 'r') as f:
+        profile_name = json.load(f)["profile"]
     run_experiment(profile_name)
