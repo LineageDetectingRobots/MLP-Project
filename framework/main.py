@@ -153,5 +153,5 @@ def run_experiment(profile_name: str):
     # TODO: Save results or model at the end
 
 if __name__ == '__main__':
-    profile_name = 'Jack'
+    profile_name = 'TWO_DEC'
     run_experiment(profile_name)

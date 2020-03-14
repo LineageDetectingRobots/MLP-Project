@@ -30,15 +30,17 @@ DEFAULT:
     # can decide what metrics we want to do here
     # loss tp/fp ...
     # configure what and how to save data here
-CIARAN:
+FOUR_DEC:
   experiment_name: four_layer_dec_four
     # Could add callbacks for stats
     # Could add checkpoints to load or save the model
   # We could be experimenting with different networks this is
   model_settings:
     layer_config: [1024,256,64,16]
-
-
+TWO_DEC:
+  experiment_name: half_layer_dec
+  model_settings:
+    layer_config: [1024, 256]
 Jack:
   training_settings:
     batch_size: 64
