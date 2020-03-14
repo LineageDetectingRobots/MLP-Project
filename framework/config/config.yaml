@@ -7,7 +7,7 @@ DEFAULT:
     network_name: "arc_face"
   training_settings:
     batch_size: 64
-    epochs: 1
+    epochs: 20
     # Could add callbacks for stats
     # Could add checkpoints to load or save the model
   # We could be experimenting with different networks this is

@@ -7,6 +7,7 @@ import pandas as pd
 import torch.utils.data as data
 import matplotlib.pyplot as plt
 
+import torch
 
 class FIW(data.Dataset):
     def __init__(self, path_to_split_csv: str, path_to_mappings: str,  folds: list):
@@ -36,9 +37,9 @@ class FIW(data.Dataset):
         child_fam_id = self.dataset.iloc[idx].C[:5]
         if father_fam_id == mother_fam_id:
             if father_fam_id == child_fam_id:
-                return 1;
+                return 1
             else:
-                return 0;
+                return 0
         else:
             raise RuntimeError('Mother and father family ID should be the same. index = ', idx)
     
@@ -47,11 +48,12 @@ class FIW(data.Dataset):
         mother_path = self.dataset.iloc[idx].M
         child_path = self.dataset.iloc[idx].C
 
-        father = self.mappings[father_path]
-        mother = self.mappings[mother_path]
-        child = self.mappings[child_path]
-
-        return [father, mother, child]
+        father = torch.FloatTensor(self.mappings[father_path])
+        mother = torch.FloatTensor(self.mappings[mother_path])
+        child = torch.FloatTensor(self.mappings[child_path])
+        fam_list = [father, mother, child]
+        fam_vec = torch.stack(fam_list).view(-1)
+        return fam_vec
 
     def __getitem__(self, idx):
         return self._get_tripair(idx), self._get_label(idx)
@@ -67,7 +69,6 @@ if __name__ == "__main__":
     test_folds = [5]
     train_dataset = FIW(csv_path, mappings_path, train_folds) 
     test_dataset = FIW(csv_path, mappings_path, test_folds)
-    fam_list, label = train_dataset.__getitem__(128)
+    fam_vec, label = train_dataset.__getitem__(128)
     print('is_fam = ', label)
-    for fam in fam_list:
-        print(fam)
+    print('fam_vec = {}'.format(fam_vec.size()))

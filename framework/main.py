@@ -47,10 +47,7 @@ def train(model, train_dataset, training_settings):
         epoch_acc = 0
         for i, train_data in enumerate(dataloader, 1):
             # Get batch and a features length
-            batch_size = train_data[0][0].size()[0]
-            len_vec = train_data[0][0].size()[1]
-            
-            x = torch.stack(train_data[0]).view(batch_size, 3*len_vec).to(model._device(), dtype=torch.float)
+            x = train_data[0].to(model._device(), dtype=torch.float)
             y = train_data[1].to(model._device(), dtype=torch.long)
             stats = model.train_a_batch(x, y)
 
@@ -71,7 +68,8 @@ def get_datasets(network_name: str):
     test_folds = [5]
     train_dataset = FIW(csv_path, mappings_path, train_folds) 
     test_dataset = FIW(csv_path, mappings_path, test_folds)
-    vec_length = train_dataset.__getitem__(0)[0][0].shape[0]
+    vec_length = list(train_dataset.__getitem__(0)[0].size())[0]
+    print('vec length = {}'.format(vec_length))
     return train_dataset, test_dataset, vec_length
 
 def eval(model, test_dataset):
@@ -87,11 +85,9 @@ def eval(model, test_dataset):
     with torch.no_grad():
         for i, data in enumerate(dataloader, 1):
             # Get batch and a features length
-            batch_size = data[0][0].size()[0]
-            len_vec = data[0][0].size()[1]
-            
-            x = torch.stack(data[0]).view(batch_size, 3*len_vec).to(model._device(), dtype=torch.float)
+            x = data[0].to(model._device(), dtype=torch.float)
             y = data[1].to(model._device(), dtype=torch.long)
+
             y_hat = model(x)
             pred_target = torch.max(y_hat, dim=1)[1]
             y_hats.append(pred_target.cpu().numpy())
@@ -114,7 +110,7 @@ def run_experiment(profile_name: str):
     
     # Get the model we are going to use for training
     model_settings = config_data['model_settings']
-    model_settings['input_size'] = 3 * vec_length
+    model_settings['input_size'] = vec_length
     model = get_model(model_settings).to(device)
     
     # Train the model
