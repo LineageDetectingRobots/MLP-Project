@@ -124,5 +124,5 @@ def run_experiment(profile_name: str):
     # TODO: Save results or model at the end
 
 if __name__ == '__main__':
-    profile_name = 'DEFAULT'
+    profile_name = 'CIARAN'
     run_experiment(profile_name)

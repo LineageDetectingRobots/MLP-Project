@@ -1,6 +1,7 @@
 import os
 import yaml
 from pprint import pprint
+import collections
 
 CONFIG_NAME = "config.yaml"
 
