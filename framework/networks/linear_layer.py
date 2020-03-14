@@ -3,6 +3,7 @@ from torch import optim
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter
+from sklearn.metrics import roc_auc_score
 import math
 
 # computues cosine similarity
@@ -99,9 +100,9 @@ class BaseNetwork(nn.Module):
         loss.backward()
         self.optimizer.step()
 
-        # TODO: calc acc correct over total
+        # stats for trainer
         pred_targets = torch.max(y_hat, dim=1)[1]
-        acc = sum([1 if pred_target == y else 0 for pred_target, y in zip(pred_targets, y)])/len(y)
+        acc = roc_auc_score(y.cpu().numpy(), pred_targets.cpu().numpy())
 
         return {'loss': loss,
                 'acc': acc}
