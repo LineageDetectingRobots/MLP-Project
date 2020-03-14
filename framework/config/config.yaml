@@ -8,6 +8,9 @@ DEFAULT:
   training_settings:
     batch_size: 64
     epochs: 20
+    early_stopping: false
+    # How many epochs of not increased validation acc. before we stop
+    es_epochs: 1
     # Could add callbacks for stats
     # Could add checkpoints to load or save the model
   # We could be experimenting with different networks this is
@@ -38,6 +41,6 @@ TWO_DEC:
   experiment_name: half_layer_dec
   model_settings:
     layer_config: [1024, 256]
-
-
-
+Jack:
+  training_settings:
+    batch_size: 64
