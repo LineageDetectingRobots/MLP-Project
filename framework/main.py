@@ -104,7 +104,7 @@ def eval(model, test_dataset):
     model.eval()
 
     # TODO: get if we are using gpu or not
-    cuda = True
+    cuda = model._is_on_cuda()
     dataloader = get_data_loader(test_dataset, 1, cuda)
     y_hats = []
     ys = []
@@ -122,8 +122,11 @@ def eval(model, test_dataset):
     return acc
 
 def run_experiment(profile_name: str):
-    # TODO: Get configurations, from config file or something
+    # Get experiment settings
     config_data = ConfigReader(profile_name).config_data
+
+    results_dict = {}
+    results_dict['config_data'] = config_data
 
     use_cuda = config_data["use_cuda"]
     cuda = torch.cuda.is_available() and use_cuda
