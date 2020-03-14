@@ -150,6 +150,7 @@ class MLP(BaseNetwork):
         self.layer_config = network_settings['layer_config'] if 'layer_config' in network_settings else []
         self.use_batch_norm = network_settings["use_batch_norm"]
         self.activation_func = _get_activation_func(network_settings["activation_func"])
+        self.loss_function = _get_loss_func(network_settings["loss_func"])
         self.use_bias = network_settings["use_bias"]
         self.dropout_value = network_settings["dropout_val"]
         
@@ -179,7 +180,7 @@ class MLP(BaseNetwork):
         self.layers.append(final_layer)
 
     def loss(self, y_hat, y):
-        loss = nn.CrossEntropyLoss()(y_hat, y)
+        loss = self.loss_function(y_hat, y)
         return loss
     
     def forward(self, x):
