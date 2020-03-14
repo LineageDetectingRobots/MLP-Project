@@ -32,15 +32,26 @@ DEFAULT:
     # configure what and how to save data here
 FOUR_DEC:
   experiment_name: four_layer_dec_four
-    # Could add callbacks for stats
-    # Could add checkpoints to load or save the model
-  # We could be experimenting with different networks this is
   model_settings:
     layer_config: [1024,256,64,16]
 TWO_DEC:
   experiment_name: half_layer_dec
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
   model_settings:
     layer_config: [1024, 256]
+DROP_TWO_DEC:
+  experiment_name: half_layer_dec
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
 Jack:
   training_settings:
     batch_size: 64
