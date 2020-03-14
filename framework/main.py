@@ -1,7 +1,11 @@
 import os
 import tqdm
-from sklearn.metrics import roc_auc_score
+import pickle 
+import json
 import numpy as np
+from sklearn.metrics import roc_auc_score
+from datetime import datetime
+from pprint import pprint
 
 import torch
 from torch.utils.data import DataLoader
@@ -31,8 +35,14 @@ def get_model(model_settings: dict):
 
 
 def train(model, train_dataset, training_settings, validation_dataset = None):
+    # Create training dict
+    train_dict = {}
+
+    # Get config settings
     batch_size = training_settings['batch_size']
     num_of_epochs = training_settings['epochs']
+
+    # Set up early stopping
     use_early_stopping = training_settings['early_stopping']
     if use_early_stopping and validation_dataset is not None:
         wait_epochs = training_settings['es_epochs']
@@ -61,9 +71,12 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
 
         print('Training loss = {}'.format(epoch_loss/i))
         print('Training acc = {}'.format(epoch_acc/i))
+        train_dict[f'e_{epoch}_train_loss'] = epoch_loss.detach().cpu().numpy()/i
+        train_dict[f'e_{epoch}_train_acc'] = epoch_acc/i
 
         if validation_dataset is not None:
             acc = eval(model, validation_dataset)
+            train_dict[f'e_{epoch}_val_acc'] = acc
             print('Validation acc = {}'.format(acc))
             # Used for early stopping
             if use_early_stopping:
@@ -84,7 +97,10 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
         
         # TODO: Could run on test set to see how it is learning, get some stats
         progress.update(1)
+    
+    train_dict['num_epochs'] = epoch
     progress.close()
+    return train_dict
 
 def get_datasets(network_name: str):
     # NOTE: Netowrk name is required to known which network produces the feature vectors
@@ -104,7 +120,7 @@ def eval(model, test_dataset):
     model.eval()
 
     # TODO: get if we are using gpu or not
-    cuda = True
+    cuda = model._is_on_cuda()
     dataloader = get_data_loader(test_dataset, 1, cuda)
     y_hats = []
     ys = []
@@ -122,8 +138,11 @@ def eval(model, test_dataset):
     return acc
 
 def run_experiment(profile_name: str):
-    # TODO: Get configurations, from config file or something
+    # Get experiment settings
     config_data = ConfigReader(profile_name).config_data
+
+    results_dict = {}
+    results_dict['config_data'] = config_data
 
     use_cuda = config_data["use_cuda"]
     cuda = torch.cuda.is_available() and use_cuda
@@ -141,14 +160,30 @@ def run_experiment(profile_name: str):
     
     # Train the model
     training_settings = config_data['training_settings']
-    train(model, train_dataset, training_settings, validation_dataset)
+    train_dict = train(model, train_dataset, training_settings, validation_dataset)
+    results_dict['training_dict'] = train_dict
 
     # Evaluate the model on test dataset
     result = eval(model, test_dataset)
+    results_dict['test_acc'] = result
     print('test_result = {}'.format(result))
 
-    # TODO: Save results or model at the end
+    # TODO: Maybe save model
+    # Save experiment results
+    if config_data['save_results']:
+        experiment_name = config_data['experiment_name'] + '_' + str(datetime.now())
+        experiment_path = os.path.join(RESULTS_PATH, experiment_name)
+        with open(experiment_path, 'wb') as f:
+            pickle.dump(results_dict, f)
+    
+    pprint(results_dict)
 
 if __name__ == '__main__':
-    profile_name = 'DROP_TWO_DEC'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    profile_path = os.path.join(dir_path, "config", "profile.json")
+    if not os.path.exists(profile_path):
+        raise RuntimeError('Please add a profile.json file in MLP-Project/config/profile.json. \n' +
+                            '       It should contain one line like this: {\"profile\": "profile_name"}')
+    with open(profile_path, 'r') as f:
+        profile_name = json.load(f)["profile"]
     run_experiment(profile_name)
