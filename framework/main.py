@@ -1,7 +1,10 @@
 import os
 import tqdm
-from sklearn.metrics import roc_auc_score
+import pickle 
 import numpy as np
+from sklearn.metrics import roc_auc_score
+from datetime import datetime
+from pprint import pprint
 
 import torch
 from torch.utils.data import DataLoader
@@ -31,8 +34,14 @@ def get_model(model_settings: dict):
 
 
 def train(model, train_dataset, training_settings, validation_dataset = None):
+    # Create training dict
+    train_dict = {}
+
+    # Get config settings
     batch_size = training_settings['batch_size']
     num_of_epochs = training_settings['epochs']
+
+    # Set up early stopping
     use_early_stopping = training_settings['early_stopping']
     if use_early_stopping and validation_dataset is not None:
         wait_epochs = training_settings['es_epochs']
@@ -61,9 +70,12 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
 
         print('Training loss = {}'.format(epoch_loss/i))
         print('Training acc = {}'.format(epoch_acc/i))
+        train_dict[f'e_{epoch}_train_loss'] = epoch_loss.detach().cpu().numpy()/i
+        train_dict[f'e_{epoch}_train_acc'] = epoch_acc/i
 
         if validation_dataset is not None:
             acc = eval(model, validation_dataset)
+            train_dict[f'e_{epoch}_val_acc'] = acc
             print('Validation acc = {}'.format(acc))
             # Used for early stopping
             if use_early_stopping:
@@ -84,7 +96,10 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
         
         # TODO: Could run on test set to see how it is learning, get some stats
         progress.update(1)
+    
+    train_dict['num_epochs'] = epoch
     progress.close()
+    return train_dict
 
 def get_datasets(network_name: str):
     # NOTE: Netowrk name is required to known which network produces the feature vectors
@@ -144,14 +159,24 @@ def run_experiment(profile_name: str):
     
     # Train the model
     training_settings = config_data['training_settings']
-    train(model, train_dataset, training_settings, validation_dataset)
+    train_dict = train(model, train_dataset, training_settings, validation_dataset)
+    results_dict['training_dict'] = train_dict
 
     # Evaluate the model on test dataset
     result = eval(model, test_dataset)
+    results_dict['test_acc'] = result
     print('test_result = {}'.format(result))
 
-    # TODO: Save results or model at the end
+    # TODO: Maybe save model
+    # Save experiment results
+    if config_data['save_results']:
+        experiment_name = config_data['experiment_name'] + '_' + str(datetime.now())
+        experiment_path = os.path.join(RESULTS_PATH, experiment_name)
+        with open(experiment_path, 'wb') as f:
+            pickle.dump(results_dict, f)
+    
+    pprint(results_dict)
 
 if __name__ == '__main__':
-    profile_name = 'TWO_DEC'
+    profile_name = 'Jack'
     run_experiment(profile_name)
