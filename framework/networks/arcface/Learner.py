@@ -27,22 +27,18 @@ class face_learner(object):
     def _device(self):
         return next(self.model.parameters()).device
     
-    def load_and_resize_images(self, batch_paths):
-        image_size = 112
-        if self.mtcnn is None:
-            self.mtcnn = MTCNN(image_size=image_size)
+    def load_and_resize_images(self, batch_paths, transform):
+        image_size = (112, 112)
+        transform = transform(image_size)
 
         resized_imgs = []
-        paths = []
         with torch.no_grad():
             for path in batch_paths:
                 img = Image.open(path)
-                resized_img =  self.mtcnn(img)
-                if resized_img is None:
-                    continue
-                resized_imgs.append(resized_img.cpu().numpy())
-                paths.append(path)
-        return np.array(resized_imgs).reshape(-1, 3, image_size, image_size), paths
+                resized_img = transform(img)
+                resized_imgs.append(resized_img)
+        stacked = torch.stack(resized_imgs)
+        return stacked
     
     def load_state(self, conf, fixed_str, from_save_folder=False, model_only=False):
         if from_save_folder:

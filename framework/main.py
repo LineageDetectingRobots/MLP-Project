@@ -104,7 +104,7 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
 
 def get_datasets(network_name: str):
     # NOTE: Netowrk name is required to known which network produces the feature vectors
-    csv_path = os.path.join(DATASET_PATH, 'fiw', 'tripairs', f'{network_name}_5_cross_val.csv')
+    csv_path = os.path.join(DATASET_PATH, 'fiw', 'tripairs', '5_cross_val.csv')
     mappings_path = os.path.join(RESULTS_PATH, f'mappings_{network_name}.pickle')
     train_folds = [1, 2, 3]
     validation_folds = [4]
@@ -119,7 +119,6 @@ def eval(model, test_dataset):
     # Evals the model based on test set to produce metrics for use
     model.eval()
 
-    # TODO: get if we are using gpu or not
     cuda = model._is_on_cuda()
     dataloader = get_data_loader(test_dataset, 1, cuda)
     y_hats = []
@@ -134,8 +133,8 @@ def eval(model, test_dataset):
             pred_target = torch.max(y_hat, dim=1)[1]
             y_hats.append(pred_target.cpu().numpy())
             ys.append(y.cpu().numpy())
-    acc = roc_auc_score(np.array(ys), np.array(y_hats))
-    return acc
+    auc = roc_auc_score(np.array(ys), np.array(y_hats))
+    return auc
 
 def run_experiment(profile_name: str):
     # Get experiment settings

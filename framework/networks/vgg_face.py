@@ -12,6 +12,8 @@ from imageio import imread
 from tqdm import tqdm
 from framework import MODEL_PATH, DATASET_PATH, RESULTS_PATH
 from framework.utils.downloads import download_vgg_weights
+from PIL import Image
+from torchvision import transforms as T
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -61,7 +63,18 @@ class VGG16(nn.Module):
                     self_layer.weight.data[...] = torch.tensor(layer.weight).view_as(self_layer.weight)[...]
                     self_layer.bias.data[...] = torch.tensor(layer.bias).view_as(self_layer.bias)[...]
                 
-    
+    def load_and_resize_images(self, batch_paths, transform):
+        image_size = (244, 244)
+        transform = transform(image_size)
+        resized_imgs = []
+        with torch.no_grad():
+            for path in batch_paths:
+                img = Image.open(path)
+                resized_img = transform(img)
+                resized_imgs.append(resized_img)
+        stacked = torch.stack(resized_imgs)
+        return stacked
+
     def forward(self, x):
         """
         input image (244x244)
@@ -117,32 +130,6 @@ class VGG16(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc6(x))
         return F.relu(self.fc7(x))
-    
-def load_and_resize_images(filepaths, image_size=244):
-    resized_images = []
-    for filepath in filepaths:
-        img = imread(filepath)
-        aligned = resize(img, (image_size, image_size), mode='reflect')
-
-        resized_images.append(aligned)
-    # print(len(resized_images))
-    return np.array(resized_images).reshape(-1, 3, image_size, image_size)
-
-def normalise(imgs):
-    if imgs.ndim == 4:
-        axis = (1, 2, 3)
-        size = imgs[0].size
-    elif imgs.ndim == 3:
-        axis = (0, 1, 2)
-        size = imgs.size
-    else:
-        raise ValueError('Dimension should be 3 or 4')
-
-    mean = np.mean(imgs, axis=axis, keepdims=True)
-    std = np.std(imgs, axis=axis, keepdims=True)
-    std_adj = np.maximum(std, 1.0/np.sqrt(size))
-    normalised_imgs = (imgs - mean) / std_adj
-    return normalised_imgs
 
 
 def l2_normalisation(x, axis=-1, epsilon=1e-10):
@@ -150,12 +137,23 @@ def l2_normalisation(x, axis=-1, epsilon=1e-10):
     return output
 
 
-def calc_features(model: VGG16, filepaths, batch_size=64):
+def calc_features(model: VGG16, filepaths, batch_size=128):
+    device = model._device()
+
+    # NOTE: transforms from the FIW GitHub:
+    # https://github.com/visionjo/FIW_KRT/blob/master/sphereface_rfiw_baseline/data_loader.py
+    transform = lambda image_size : T.Compose([T.RandomHorizontalFlip(),
+                                    T.Resize(image_size),
+                                    T.ToTensor(),
+                                    T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+                                    ])
+
     pred_features = []
+    device = model._device()
     for start in tqdm(range(0, len(filepaths), batch_size)):
-        normalised_images = normalise(load_and_resize_images(filepaths[start:start+batch_size]))
+        normalised_images = model.load_and_resize_images(filepaths[start:start+batch_size], transform)
         # Need to convert to a tensor
-        inputs = torch.from_numpy(normalised_images).float().to(device)
+        inputs = normalised_images.float().to(device)
         features = model.get_features(inputs)
         features_numpy = features.cpu().numpy()
         pred_features.append(features_numpy)
@@ -225,15 +223,16 @@ def run_train_baseline():
     model.eval()
 
     # Get test df
-    folder_path = os.path.join(DATASET_PATH, 'fiw')
-    val_csv = os.path.join(folder_path, "new_val.csv")
+    folder_path = os.path.join(DATASET_PATH, 'fiw', 'tripairs')
+    val_csv = os.path.join(folder_path, "5_cross_val.csv")
     val_df = pd.read_csv(val_csv)
     unique_photos_filepaths = get_unique_images(val_df)
 
+    datapath = os.path.join(DATASET_PATH, 'fiw')
     with torch.no_grad():
         test_vgg_results = os.path.join(RESULTS_PATH, "test_fiw_vgg.npy")
         if not os.path.exists(test_vgg_results):
-            test_features = calc_features(model, [os.path.join(folder_path, "FIDs", file) for file in unique_photos_filepaths])
+            test_features = calc_features(model, [os.path.join(datapath, "FIDs", file) for file in unique_photos_filepaths])
             np.save(test_vgg_results, test_features)
         else:
             test_features = np.load(test_vgg_results)
@@ -246,18 +245,23 @@ def run_train_baseline():
     # Create a distance column in test_df. Euclidean distance between image 
     val_df["distance"] = 0
     for idx, row in tqdm(val_df.iterrows(), total=len(val_df)):
-        # imgs = [test_features[img2idx[row.p1]] for img in row.img_pair.split("-")]
-        imgs = [test_features[img2idx[row.p1]], test_features[img2idx[row.p2]]]
-        val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
+        imgs_F = [test_features[img2idx[row.F]], test_features[img2idx[row.C]]]
+        imgs_M = [test_features[img2idx[row.M]], test_features[img2idx[row.C]]]
+        val_df.loc[idx, "distance_F"] = distance.euclidean(*imgs_F)
+        val_df.loc[idx, "distance_M"] = distance.euclidean(*imgs_M)
 
     # Sum all the distances up
-    all_distances = val_df.distance.values
-    sum_dist = np.sum(all_distances)
+    distances_F = val_df.distance_F.values
+    distances_M = val_df.distance_M.values
+    sum_dist_F = np.sum(distances_F)
+    sum_dist_M = np.sum(distances_M)
 
     # Calculate prob. based on sum of all closer matches over total distance summed
     probs = []
-    for dist in tqdm(all_distances):
-        prob = np.sum(all_distances[np.where(all_distances <= dist)[0]])/sum_dist
+    for (dist_F, dist_M) in tqdm(zip(distances_F, distances_M)):
+        prob_F = np.sum(distances_F[np.where(distances_F <= dist_F)[0]])/sum_dist_F
+        prob_M = np.sum(distances_M[np.where(distances_M <= dist_M)[0]])/sum_dist_M
+        prob = (prob_F + prob_M) / 2.0
         probs.append(1 - prob)
     
     val_df["probs"] = probs
@@ -271,13 +275,12 @@ def run_train_baseline():
     
     save_results_path = os.path.join(RESULTS_PATH, "results_baseline.csv")
     val_df.to_csv(save_results_path)
-    # val_df.loc[idx, "distance"] = distance.euclidean(*imgs)
     
 
 
 
 def get_unique_images(dataframe):
-    return dataframe.p1.append(dataframe.p2).unique()
+    return (dataframe.F.append(dataframe.M).append(dataframe.C)).unique()
 
 
 
