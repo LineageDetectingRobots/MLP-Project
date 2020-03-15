@@ -28,6 +28,7 @@ def _get_loss_func(function_name: str):
     elif function_name == 'nll':
         return nn.NLLLoss()
     
+    # Cant use triplet margin loss as we dont provide an extra negative input
     elif function_name == 'TripletMarginLoss':
         return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
     else:
