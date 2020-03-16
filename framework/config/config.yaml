@@ -69,24 +69,59 @@ TRIP_M_LOSS:
     activation_func: prelu
     loss_func: TripletMarginLoss
 
-
 Jack:
   training_settings:
     batch_size: 64
     epochs: 20
     early_stopping: true
 
-Ishan:
+Ishan1:
+  experiment_name: sq_root_decrease_facenet
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
+  training_settings:
+    batch_size: 64
+    epochs: 20
+    early_stopping: true
+    es_epochs: 2
+  model_settings:
+    output_size: 2
+    layer_config: [1024, 512, 256, 256, 16, 16, 4, 4]
+    activation_func: prelu
+    loss_func: cross_entropy
+    learning_rate: 0.001
+
+Ishan2:
+  experiment_name: sq_root_decrease_arcface
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "arc_face"
+  training_settings:
+    batch_size: 64
+    epochs: 20
+    early_stopping: true
+    es_epochs: 2
+  model_settings:
+    output_size: 2
+    layer_config: [1024, 512, 256, 256, 16, 16, 4, 4]
+    activation_func: relu
+    loss_func: nll
+    learning_rate: 0.001
+
+Ishan3:
   experiment_name: sq_root_decrease
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face2"
   training_settings:
-    batch_size: 32
-    epochs: 100
+    batch_size: 64
+    epochs: 20
     early_stopping: true
-    es_epochs: 5
+    es_epochs: 2
   model_settings:
-    layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
+    output_size: 2
+    layer_config: [1024, 256, 16, 4, 2]
     activation_func: prelu
-    loss_func: nll
+    loss_func: cross_entropy
+    learning_rate: 0.001

@@ -22,14 +22,15 @@ def _get_loss_func(function_name: str):
     if function_name == 'cross_entropy':
         return nn.CrossEntropyLoss(reduction='mean')
 
-    elif function_name == 'mse':
-        return nn.MSELoss()
+    # elif function_name == 'mse':
+    #     return nn.MSELoss()
     
     elif function_name == 'nll':
+        # print()
         return nn.NLLLoss()
-    
-    elif function_name == 'TripletMarginLoss':
-        return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
+
+    # elif function_name == 'TripletMarginLoss':
+    #     return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
     else:
         raise RuntimeError('Unkown loss function: {}'.format(function_name))
     
@@ -138,7 +139,7 @@ class FullyConnectedLayer(nn.Module):
         out = self.dropout(x) if hasattr(self, 'dropout') else x
         out = self.linear(out)
         out = self.bn(out) if hasattr(self, 'bn') else out
-        out = self.activation_func(out) if hasattr(self, 'activation_func') else out
+            
         return out
 
 
@@ -189,46 +190,46 @@ class MLP(BaseNetwork):
             out = layer(out)
         return F.softmax(out, dim=1)
 
-class MarginCosineProduct(BaseNetwork):
-    r"""Implement of large margin cosine distance: :
-    Args:
-        in_features: size of each input sample 
-        out_features: size of each output sample
-        s: norm of input feature
-        m: margin -> this is same as the m val used in arcface and sphereFace
-    """
+# class MarginCosineProduct(BaseNetwork):
+#     r"""Implement of large margin cosine distance: :
+#     Args:
+#         in_features: size of each input sample 
+#         out_features: size of each output sample
+#         s: norm of input feature
+#         m: margin -> this is same as the m val used in arcface and sphereFace
+#     """
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.40):
-        super(MarginCosineProduct, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.s = s
-        self.m = m
-        self.weight = Parameter(torch.Tensor(out_features, in_features))
-        nn.init.xavier_uniform_(self.weight)
-        #stdv = 1. / math.sqrt(self.weight.size(1))
-        #self.weight.data.uniform_(-stdv, stdv)
+#     def __init__(self, in_features, out_features, s=30.0, m=0.40):
+#         super(MarginCosineProduct, self).__init__()
+#         self.in_features = in_features
+#         self.out_features = out_features
+#         self.s = s
+#         self.m = m
+#         self.weight = Parameter(torch.Tensor(out_features, in_features))
+#         nn.init.xavier_uniform_(self.weight)
+#         #stdv = 1. / math.sqrt(self.weight.size(1))
+#         #self.weight.data.uniform_(-stdv, stdv)
 
-    def loss(self):
-        # --------------------------------loss function and optimizer-----------------------------
-        lossFunc = torch.nn.CrossEntropyLoss()
+#     def loss(self):
+#         # --------------------------------loss function and optimizer-----------------------------
+#         lossFunc = torch.nn.CrossEntropyLoss()
     
 
-    def forward(self, input, label):
-        cosine = cosine_sim(input, self.weight)
+#     def forward(self, input, label):
+#         cosine = cosine_sim(input, self.weight)
 
-        one_hot.scatter_(1, label.view(-1, 1), 1.0)
-        # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
-        output = self.s * (cosine - one_hot * self.m)
+#         one_hot.scatter_(1, label.view(-1, 1), 1.0)
+#         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
+#         output = self.s * (cosine - one_hot * self.m)
 
-        return output
+#         return output
 
-    def __repr__(self):
-        return self.__class__.__name__ + '(' \
-               + 'in_features=' + str(self.in_features) \
-               + ', out_features=' + str(self.out_features) \
-               + ', s=' + str(self.s) \
-               + ', m=' + str(self.m) + ')'
+#     def __repr__(self):
+#         return self.__class__.__name__ + '(' \
+#                + 'in_features=' + str(self.in_features) \
+#                + ', out_features=' + str(self.out_features) \
+#                + ', s=' + str(self.s) \
+#                + ', m=' + str(self.m) + ')'
 
 
 
