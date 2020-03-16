@@ -88,7 +88,7 @@ ONE_TWO_FIVE:
     layer_config: [256]
 
 TWO_DEC:
-  experiment_name: half_layer_dec
+  experiment_name: quarter_layer_dec
   training_settings:
     epochs: 100
     early_stopping: true
@@ -105,6 +105,54 @@ DROP_TWO_DEC:
     es_epochs: 5
   model_settings:
     layer_config: [1024, 256]
+    dropout_val: 0.5
+  
+DROP_HALF_FIVE:
+  experiment_name: drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512]
+    dropout_val: 0.5
+
+DROP_BIG_THREE:
+  experiment_name: drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256, 128]
+    dropout_val: 0.5
+
+DROP_EIGHTH:
+  experiment_name: drop_eighth
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 128]
+  
+INCREASE_TWO_DROP:
+  experiment_name: increase_two_drop
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048, 512]
+
+DROP_DOUBLE_HALF:
+  experiment_name: drop_double_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512, 256]
     dropout_val: 0.5
 
 DROP_EIGHT_SAME:
@@ -143,8 +191,9 @@ Jack:
   use_cuda: false
   training_settings:
     batch_size: 64
-    epochs: 20
+    epochs: 100
     early_stopping: true
+    es_epochs: 5
   model_settings:
     layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
     activation_func: prelu
