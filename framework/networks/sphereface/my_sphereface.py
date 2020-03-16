@@ -216,25 +216,18 @@ class SphereFace(nn.Module):
         face_img = cv2.warpAffine(src_img, tfm, crop_size)
         return face_img
 
-    def load_and_resize_images(self, batch_paths):
-        image_size = 112
-        if self.mtcnn is None:
-            self.mtcnn = MTCNN(image_size=image_size)
+    def load_and_resize_images(self, batch_paths, transform):
+        image_size = (112, 96)
+        transform = transform(image_size)
         
         resized_imgs = []
-        paths = []
         with torch.no_grad():
             for path in batch_paths:
-                img = cv2.imread(path)
-                _, _, landmarks = self.mtcnn.detect(img, landmarks=True)
-                # print('landmarks mtcnn = ', landmarks)
-                if landmarks is None:
-                    continue
-                resized_img = self.alignment(img, landmarks[0])
-                # print('resized-img shape = ', resized_img.shape)
+                img = Image.open(path)
+                resized_img = transform(img)
                 resized_imgs.append(resized_img)
-                paths.append(path)
-        return np.array(resized_imgs).reshape(-1, 3, image_size, 96), paths
+        stacked = torch.stack(resized_imgs)
+        return stacked
 
     def get_features(self, image_batch):
         with torch.no_grad():         

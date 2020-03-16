@@ -70,10 +70,16 @@ TRIP_M_LOSS:
     loss_func: TripletMarginLoss
 
 Jack:
+  use_cuda: false
   training_settings:
     batch_size: 64
     epochs: 20
     early_stopping: true
+  model_settings:
+    layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
+    activation_func: prelu
+    loss_func: cross_entropy
+
 
 Ishan1:
   experiment_name: sq_root_decrease_facenet

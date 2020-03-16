@@ -11,6 +11,7 @@ import re
 from tqdm import tqdm
 import torch
 import torch.nn as nn
+from torchvision import transforms as T
 
 import framework.networks.arcface.my_face_verify as arcface
 from framework.networks.sphereface.my_sphereface import get_model as get_sphereface_model
@@ -54,44 +55,30 @@ def l2_normalisation(x, axis=-1, epsilon=1e-10):
     output = x / np.sqrt(np.maximum(np.sum(np.square(x), axis=axis, keepdims=True), epsilon))
     return output
 
-def normalise(imgs):
-    # TODO: const values for whole set not just batch
-    if imgs.ndim == 4:
-        axis = (1, 2, 3)
-        size = imgs[0].size
-    elif imgs.ndim == 3:
-        axis = (0, 1, 2)
-        size = imgs.size
-    else:
-        raise ValueError('Dimension should be 3 or 4')
-
-    mean = np.mean(imgs, axis=axis, keepdims=True)
-    std = np.std(imgs, axis=axis, keepdims=True)
-    std_adj = np.maximum(std, 1.0/np.sqrt(size))
-    normalised_imgs = (imgs - mean) / std_adj
-    return normalised_imgs
-
 def calc_features(model, photo_paths: list, batch_size=128):
     device = model._device()
 
+    # NOTE: transforms from the FIW GitHub:
+    # https://github.com/visionjo/FIW_KRT/blob/master/sphereface_rfiw_baseline/data_loader.py
+    transform = lambda image_size : T.Compose([T.RandomHorizontalFlip(),
+                                    T.Resize(image_size),
+                                    T.ToTensor(),
+                                    T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+                                    ])
+
     pred_features = []
-    all_paths = []
     for start in tqdm(range(0, len(photo_paths), batch_size)):
         batch_paths = photo_paths[start:start + batch_size]
-        image_batch, paths = model.load_and_resize_images(batch_paths)
-        all_paths = all_paths + paths
-
-        # TODO: Normalise image batch? Add model
-        image_batch = normalise(image_batch)
-
+        image_batch = model.load_and_resize_images(batch_paths, transform)
+        # print(image_batch)
         # Move image batch to device
-        image_inputs = torch.from_numpy(image_batch).float().to(device)
+        image_inputs = image_batch.float().to(device)
         feature_batch = model.get_features(image_inputs)
         feature_batch_numpy = feature_batch.cpu().numpy()
         pred_features.append(feature_batch_numpy)
     # TODO: Do l2 normalisation???
     features = l2_normalisation(np.concatenate(pred_features))
-    return features, all_paths
+    return features
 
 def get_base_filepath(paths):
     base_filepaths = []
@@ -152,14 +139,11 @@ if __name__ == '__main__':
         feature_vec_results = os.path.join(RESULTS_PATH, f'mappings_{model_name}.pickle')
         if (not os.path.exists(feature_vec_results)) or overwrite:
             photo_folder = os.path.join(DATASET_PATH, 'fiw', 'FIDs')
-            # print(photo_folder)
             all_paths = [os.path.join(photo_folder, photo) for photo in unique_photo_filepaths]
-            feature_vecs, paths = calc_features(model, all_paths)
-            # Some photos might not be preprocessed, we need to update the csv file to reflect this
-            new_csv = remove_rows(cross_val_df, paths, all_paths)
-            new_csv.to_csv(new_val_csv)
+            feature_vecs = calc_features(model, all_paths)
+
             # Create a mapping from img_filepath to vector
-            filepath_map = get_filepath_to_vector(feature_vecs, paths)
+            filepath_map = get_filepath_to_vector(feature_vecs, all_paths)
             # save all as one tuple
             data = (feature_vecs, filepath_map)
             with open(feature_vec_results, 'wb') as handle:
