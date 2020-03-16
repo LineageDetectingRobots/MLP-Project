@@ -188,14 +188,14 @@ MSE_LOSS:
     loss_func: mse
 
 Jack:
-  use_cuda: false
+  use_cuda: true
   training_settings:
     batch_size: 64
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
-    layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
+    layer_config: [1024, 256, 4]
     activation_func: prelu
     loss_func: cross_entropy
 
