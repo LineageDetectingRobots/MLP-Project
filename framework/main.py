@@ -46,7 +46,7 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
     use_early_stopping = training_settings['early_stopping']
     if use_early_stopping and validation_dataset is not None:
         wait_epochs = training_settings['es_epochs']
-        max_val_acc = -1
+        max_val_auc = -1
         es_count = 0
     
     cuda = model._is_on_cuda()
@@ -59,7 +59,7 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
     dataloader = get_data_loader(train_dataset, batch_size, cuda, drop_last=True)
     for epoch in range(1, num_of_epochs + 1):
         epoch_loss = 0
-        epoch_acc = 0
+        epoch_auc = 0
         for i, train_data in enumerate(dataloader, 1):
             # Get batch and a features length
             x = train_data[0].to(model._device(), dtype=torch.float)
@@ -67,21 +67,21 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
             stats = model.train_a_batch(x, y)
 
             epoch_loss += stats['loss']
-            epoch_acc += stats['acc']
+            epoch_auc += stats['auc']
 
         print('Training loss = {}'.format(epoch_loss/i))
-        print('Training acc = {}'.format(epoch_acc/i))
+        print('Training auc = {}'.format(epoch_auc/i))
         train_dict[f'e_{epoch}_train_loss'] = epoch_loss.detach().cpu().numpy()/i
-        train_dict[f'e_{epoch}_train_acc'] = epoch_acc/i
+        train_dict[f'e_{epoch}_train_acc'] = epoch_auc/i
 
         if validation_dataset is not None:
-            acc = eval(model, validation_dataset)
-            train_dict[f'e_{epoch}_val_acc'] = acc
-            print('Validation acc = {}'.format(acc))
+            eval_dict = eval(model, validation_dataset)
+            train_dict[f'e_{epoch}_val_auc'] = eval_dict['auc']
+            print('Validation dict = {}'.format(eval_dict))
             # Used for early stopping
             if use_early_stopping:
-                if acc >= max_val_acc:
-                    max_val_acc = acc
+                if eval_dict['auc'] >= max_val_auc:
+                    max_val_auc = eval_dict['auc']
                     es_count = 0
                 else:
                     es_count += 1
@@ -134,7 +134,36 @@ def eval(model, test_dataset):
             y_hats.append(pred_target.cpu().numpy())
             ys.append(y.cpu().numpy())
     auc = roc_auc_score(np.array(ys), np.array(y_hats))
-    return auc
+
+
+    y_hats_fmd = []
+    y_hats_fms = []
+    ys_fmd = []
+    ys_fms = []
+    for idx in range(len(test_dataset.dataset)):
+        # Get type
+        type_relation = test_dataset.dataset.iloc[idx].type
+        tripair = test_dataset._get_tripair(idx)
+        label =  test_dataset._get_label(idx)
+
+        x = tripair.to(model._device(), dtype=torch.float).view(1, -1)
+        y = label
+
+        y_hat = model(x)
+        pred_target = torch.max(y_hat, dim=1)[1]
+        if type_relation == 'fmd':
+            y_hats_fmd.append(pred_target.cpu().numpy())
+            ys_fmd.append(y)
+        elif type_relation == 'fms':
+            y_hats_fms.append(pred_target.cpu().numpy())
+            ys_fms.append(y)
+        else:
+            raise RuntimeError('Unkown relationship type = {}'.format(type_relation))
+    fmd_auc = roc_auc_score(np.array(ys_fmd), np.array(y_hats_fmd))
+    fms_auc = roc_auc_score(np.array(ys_fms), np.array(y_hats_fms))
+    return {'auc': auc,
+            'fmd_auc': fmd_auc,
+            'fms_auc': fms_auc}
 
 def run_experiment(profile_name: str):
     # Get experiment settings

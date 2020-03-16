@@ -102,10 +102,10 @@ class BaseNetwork(nn.Module):
 
         # stats for trainer
         pred_targets = torch.max(y_hat, dim=1)[1]
-        acc = roc_auc_score(y.cpu().numpy(), pred_targets.cpu().numpy())
+        auc = roc_auc_score(y.cpu().numpy(), pred_targets.cpu().numpy())
 
         return {'loss': loss,
-                'acc': acc}
+                'auc': auc}
 
 
 

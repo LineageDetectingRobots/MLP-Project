@@ -276,9 +276,6 @@ def run_train_baseline():
     save_results_path = os.path.join(RESULTS_PATH, "results_baseline.csv")
     val_df.to_csv(save_results_path)
     
-
-
-
 def get_unique_images(dataframe):
     return (dataframe.F.append(dataframe.M).append(dataframe.C)).unique()
 
