@@ -11,22 +11,8 @@ from framework.utils.experiment_utils import get_model, check_network_name, get_
 from framework.config.config_reader import ConfigReader
 
 def high_score(scores):
-    # np.reshape(scores, (scores.shape[0], scores.shape[1], 2))
-    print('scores shape: ', scores.size())
     result = torch.sum(scores, dim=0)
-    print(result.size())
-    result = torch.max(result, dim=0)[1]
-    print(result.size())
-    # scores_0 = np.sum(scores, axis=0)
-    # print('0: ', scores_0.shape)
-    # scores_1 = np.sum(scores, axis=1)
-    # print('1: ', scores_1.shape)
-    # scores_2 = np.sum(scores, axis=2)
-    # print('2: ', scores_2.shape)
-    
-    # for score in scores:
-        # print(score)
-        # break
+    result = torch.max(result, dim=2)[1]
     return result.cpu().numpy()
 
 def get_ensemble(ensemble_name: str):
@@ -64,7 +50,10 @@ def eval(pred_targets, dataset):
     for i in range(len(dataset)):
         y = dataset[i][1]
         targets.append(y)
-    auc = roc_auc_score(np.array(targets), np.array(pred_targets))
+    targets = np.array(targets)
+    print('targets:', targets.shape)
+    print('preds:', pred_targets.shape)
+    auc = roc_auc_score(targets, pred_targets)
     return auc
     
 
