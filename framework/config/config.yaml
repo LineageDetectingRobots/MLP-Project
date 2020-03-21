@@ -2,7 +2,11 @@
 DEFAULT:
   use_cuda: true
   save_results: true
+  # Save the model at the end
   save_model: false
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  # Used for files we will save
   experiment_name: default_experiment
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
@@ -25,6 +29,7 @@ DEFAULT:
     dropout_val: 0.0
     optimiser_type: "adam"
     learning_rate: 0.001
+
 
 FOUR_DEC:
   experiment_name: four_layer_dec_four
@@ -101,6 +106,76 @@ TWO_DEC:
 
 DROP_TWO_DEC:
   experiment_name: half_layer_dec
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TWO_DEC_arc:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  experiment_name: half_layer_dec_arc
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TWO_DEC_vgg2:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "vgg_face2"
+  experiment_name: half_layer_dec_vgg2
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+  
+DROP_TWO_DEC_vgg:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "vgg_face"
+  experiment_name: half_layer_dec_vgg
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TWO_DEC_sphere:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "sphere_face"
+  experiment_name: half_layer_dec_sphere
   training_settings:
     epochs: 100
     early_stopping: true
