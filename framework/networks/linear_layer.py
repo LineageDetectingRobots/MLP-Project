@@ -28,9 +28,10 @@ def _get_loss_func(function_name: str):
     elif function_name == 'nll':
         # print()
         return nn.NLLLoss()
-
-    # elif function_name == 'TripletMarginLoss':
-    #     return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
+    
+    # Cant use triplet margin loss as we dont provide an extra negative input
+    elif function_name == 'TripletMarginLoss':
+        return nn.TripletMarginLoss(margin=1.0, p=2.0, eps=1e-06, swap=False)
     else:
         raise RuntimeError('Unkown loss function: {}'.format(function_name))
     
@@ -103,10 +104,10 @@ class BaseNetwork(nn.Module):
 
         # stats for trainer
         pred_targets = torch.max(y_hat, dim=1)[1]
-        acc = roc_auc_score(y.cpu().numpy(), pred_targets.cpu().numpy())
+        auc = roc_auc_score(y.cpu().numpy(), pred_targets.cpu().numpy())
 
         return {'loss': loss,
-                'acc': acc}
+                'auc': auc}
 
 
 

@@ -34,9 +34,10 @@ def get_model(model_settings: dict):
     return model
 
 
-def train(model, train_dataset, training_settings, validation_dataset = None):
+def train(model_1, model_2, train_dataset, training_settings, validation_dataset = None):
     # Create training dict
     train_dict = {}
+    checkpoint = training_settings['checkpoint']
 
     # Get config settings
     batch_size = training_settings['batch_size']
@@ -49,33 +50,51 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
         max_val_auc = -1
         es_count = 0
     
-    cuda = model._is_on_cuda()
+    cuda = model_1._is_on_cuda()
 
     # Put model in training mode
-    model.train()
+    model_1.train()
+    model_2.train()
     
     progress = tqdm.tqdm(range(1, num_of_epochs + 1))
     # TODO: We might need to drop the last element
     dataloader = get_data_loader(train_dataset, batch_size, cuda, drop_last=True)
     for epoch in range(1, num_of_epochs + 1):
-        epoch_loss = 0
-        epoch_auc = 0
+        epoch_loss = [0, 0]
+        epoch_auc = [0, 0]
         for i, train_data in enumerate(dataloader, 1):
             # Get batch and a features length
-            x = train_data[0].to(model._device(), dtype=torch.float)
-            y = train_data[1].to(model._device(), dtype=torch.long)
-            stats = model.train_a_batch(x, y)
+            vec_size = list(train_data[0].size())[1] // 3
+            father = train_data[0][:, 0:vec_size]
+            mother = train_data[0][:, vec_size:vec_size*2]
+            child = train_data[0][:, vec_size*2:vec_size*3]
 
-            epoch_loss += stats['loss']
-            epoch_auc += stats['auc']
+            father_child = torch.cat((father, child), 1)
+            mother_child = torch.cat((mother, child), 1)
+            x_1 = father_child.to(model_1._device(), dtype=torch.float)
+            x_2 = mother_child.to(model_2._device(), dtype=torch.float)
+            y = train_data[1].to(model_1._device(), dtype=torch.long)
 
-        print('Training loss = {}'.format(epoch_loss/i))
-        print('Training auc = {}'.format(epoch_auc/i))
-        train_dict[f'e_{epoch}_train_loss'] = epoch_loss.detach().cpu().numpy()/i
-        train_dict[f'e_{epoch}_train_acc'] = epoch_auc/i
+            stats_1 = model_1.train_a_batch(x_1, y)
+            stats_2 = model_2.train_a_batch(x_2, y)
 
-        if validation_dataset is not None:
-            eval_dict = eval(model, validation_dataset)
+            epoch_loss[0] += stats_1['loss']
+            epoch_loss[1] += stats_2['loss']
+
+            epoch_auc[0] += stats_1['auc']
+            epoch_auc[1] += stats_2['auc']
+
+        print('Training loss father_child = {}'.format(epoch_loss[0]/i))
+        print('Training loss mother_child = {}'.format(epoch_loss[1]/i))
+        print('Training auc father_child = {}'.format(epoch_auc[0]/i))
+        print('Training auc mother_child = {}'.format(epoch_auc[1]/i))
+        train_dict[f'e_{epoch}_train_loss_1'] = epoch_loss[0].detach().cpu().numpy()/i
+        train_dict[f'e_{epoch}_train_loss_2'] = epoch_loss[1].detach().cpu().numpy()/i
+        train_dict[f'e_{epoch}_train_acc_1'] = epoch_auc[0]/i
+        train_dict[f'e_{epoch}_train_acc_2'] = epoch_auc[1]/i
+
+        if validation_dataset is not None and epoch % checkpoint == 0:
+            eval_dict = eval(model_1, model_2, validation_dataset)
             train_dict[f'e_{epoch}_val_auc'] = eval_dict['auc']
             print('Validation dict = {}'.format(eval_dict))
             # Used for early stopping
@@ -93,7 +112,8 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
                     break
                 
 
-            model.train()
+            model_1.train()
+            model_2.train()
         
         # TODO: Could run on test set to see how it is learning, get some stats
         progress.update(1)
@@ -115,21 +135,30 @@ def get_datasets(network_name: str):
     vec_length = list(train_dataset.__getitem__(0)[0].size())[0]
     return train_dataset, validation_dataset, test_dataset, vec_length
 
-def eval(model, test_dataset):
+def eval(model_1, model_2, test_dataset):
     # Evals the model based on test set to produce metrics for use
-    model.eval()
+    model_1.eval()
+    model_2.eval()
 
-    cuda = model._is_on_cuda()
+    cuda = model_1._is_on_cuda()
     dataloader = get_data_loader(test_dataset, 1, cuda)
     y_hats = []
     ys = []
     with torch.no_grad():
         for i, data in enumerate(dataloader, 1):
             # Get batch and a features length
-            x = data[0].to(model._device(), dtype=torch.float)
-            y = data[1].to(model._device(), dtype=torch.long)
+            vec_size = list(data[0].size())[1] // 3
+            father = data[0][:, 0:vec_size]
+            mother = data[0][:, vec_size:vec_size*2]
+            child = data[0][:, vec_size*2:vec_size*3]
+  
+            x_1 = torch.cat((father, child), 1).to(model_1._device(), dtype=torch.float)
+            x_2 = torch.cat((mother, child), 1).to(model_2._device(), dtype=torch.float)
+            y = data[1].to(model_1._device(), dtype=torch.long)
 
-            y_hat = model(x)
+            y_hat_1 = model_1(x_1)
+            y_hat_2 = model_2(x_2)
+            y_hat = y_hat_1 + y_hat_2
             pred_target = torch.max(y_hat, dim=1)[1]
             y_hats.append(pred_target.cpu().numpy())
             ys.append(y.cpu().numpy())
@@ -145,11 +174,19 @@ def eval(model, test_dataset):
         type_relation = test_dataset.dataset.iloc[idx].type
         tripair = test_dataset._get_tripair(idx)
         label =  test_dataset._get_label(idx)
+        vec_size = list(tripair.size())[0] // 3
 
-        x = tripair.to(model._device(), dtype=torch.float).view(1, -1)
+        father = tripair[0:vec_size]
+        mother = tripair[vec_size:vec_size*2]
+        child = tripair[vec_size*2:vec_size*3]
+
+        x_1 = torch.cat((father, child)).to(model_1._device(), dtype=torch.float)
+        x_2 = torch.cat((mother, child)).to(model_2._device(), dtype=torch.float)
         y = label
 
-        y_hat = model(x)
+        y_hat_1 = model_1(x_1.view(1, -1))
+        y_hat_2 = model_2(x_2.view(1, -1))
+        y_hat = y_hat_1 + y_hat_2
         pred_target = torch.max(y_hat, dim=1)[1]
         if type_relation == 'fmd':
             y_hats_fmd.append(pred_target.cpu().numpy())
@@ -183,16 +220,17 @@ def run_experiment(profile_name: str):
     
     # Get the model we are going to use for training
     model_settings = config_data['model_settings']
-    model_settings['input_size'] = vec_length
-    model = get_model(model_settings).to(device)
+    model_settings['input_size'] = (vec_length // 3) * 2
+    model_1 = get_model(model_settings).to(device)
+    model_2 = get_model(model_settings).to(device)
     
     # Train the model
     training_settings = config_data['training_settings']
-    train_dict = train(model, train_dataset, training_settings, validation_dataset)
+    train_dict = train(model_1, model_2, train_dataset, training_settings, validation_dataset)
     results_dict['training_dict'] = train_dict
 
     # Evaluate the model on test dataset
-    result = eval(model, test_dataset)
+    result = eval(model_1, model_2, test_dataset)
     results_dict['test_acc'] = result
     print('test_result = {}'.format(result))
 
@@ -205,9 +243,10 @@ def run_experiment(profile_name: str):
             pickle.dump(results_dict, f)
     
     if config_data['save_model']:
-        model_name = os.path.join(MODEL_PATH, config_data['experiment_name'])
-        model.save_state_dict(model_name)
-
+        model_name_1 = os.path.join(MODEL_PATH, config_data['experiment_name'] + '_fc')
+        model_name_2 = os.path.join(MODEL_PATH, config_data['experiment_name'] + '_mc')
+        model_1.save_state_dict(model_name_1)
+        model_2.save_state_dict(model_name_2)
     pprint(results_dict)
 
 if __name__ == '__main__':

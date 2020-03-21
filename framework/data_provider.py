@@ -20,7 +20,7 @@ class FIW(data.Dataset):
         for idx, row in self.dataset.iterrows():
             if row.fold not in folds:
                 drop_idxs.append(idx)
-        self.dataset.drop(self.dataset.index[drop_idxs], inplace=True)
+        self.dataset = self.dataset.drop(self.dataset.index[drop_idxs])
 
     def get_mappings_and_feature_vec(self, path_to_mappings: str):
         with open(path_to_mappings, 'rb') as file:

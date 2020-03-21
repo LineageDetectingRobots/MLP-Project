@@ -2,22 +2,25 @@
 DEFAULT:
   use_cuda: true
   save_results: true
+  save_model: false
   experiment_name: default_experiment
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "arc_face"
   training_settings:
     batch_size: 64
-    epochs: 20
-    early_stopping: false
+    epochs: 100
+    early_stopping: true
+    checkpoint: 1
     # How many epochs of not increased validation acc. before we stop
-    es_epochs: 1
+    es_epochs: 5
   model_settings:
     model_name: "MLP"
     output_size: 2
     layer_config: [1024, 512, 256, 128, 64, 32, 16, 8, 4]
     use_batch_norm: false
     activation_func: relu
+    loss_func: cross_entropy
     use_bias: true
     dropout_val: 0.0
     optimiser_type: "adam"
@@ -28,8 +31,81 @@ FOUR_DEC:
   model_settings:
     layer_config: [1024, 256, 64, 16]
 
+SIXTEEN_FIVE_TWELVE:
+  experiment_name: sixteen_layer_five_twelve
+  model_settings:
+    layer_config:
+      [
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+      ]
+
+EIGHT_FIVE_TWELVE:
+  experiment_name: eight_layer_five_twelve
+  model_settings:
+    layer_config: [512, 512, 512, 512, 512, 512, 512, 512]
+
+FOUR_FIVE_TWELVE:
+  experiment_name: four_layer_five_twelve
+  model_settings:
+    layer_config: [512, 512, 512, 512]
+
+TWO_FIVE_TWELVE:
+  experiment_name: two_layer_five_twelve
+  model_settings:
+    layer_config: [512, 512]
+
+ONE_FIVE_TWELVE:
+  experiment_name: one_layer_dec_five_twelve
+  model_settings:
+    layer_config: [512]
+
+FOUR_ONE_TWO:
+  experiment_name: four_layer_one_two
+  model_settings:
+    layer_config: [1024, 1024, 1024, 1024]
+
+TWO_ONE_TWO:
+  experiment_name: two_layer_one_two
+  model_settings:
+    layer_config: [1024, 1024]
+
+ONE_ONE_TWO:
+  experiment_name: one_layer_one_two
+  model_settings:
+    layer_config: [1024]
+
+FOUR_TWO_FIVE:
+  experiment_name: four_layer_two
+  model_settings:
+    layer_config: [256, 256, 256, 256]
+
+TWO_TWO_FIVE:
+  experiment_name: two_layer_two
+  model_settings:
+    layer_config: [256, 256]
+
+ONE_TWO_FIVE:
+  experiment_name: one_layer_two
+  model_settings:
+    layer_config: [256]
+
 TWO_DEC:
-  experiment_name: half_layer_dec
+  experiment_name: quarter_layer_dec
   training_settings:
     epochs: 100
     early_stopping: true
@@ -46,6 +122,54 @@ DROP_TWO_DEC:
     es_epochs: 5
   model_settings:
     layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_HALF_FIVE:
+  experiment_name: drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512]
+    dropout_val: 0.5
+
+DROP_BIG_THREE:
+  experiment_name: drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256, 128]
+    dropout_val: 0.5
+
+DROP_EIGHTH:
+  experiment_name: drop_eighth
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 128]
+
+INCREASE_TWO_DROP:
+  experiment_name: increase_two_drop
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048, 512]
+
+DROP_DOUBLE_HALF:
+  experiment_name: drop_double_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512, 256]
     dropout_val: 0.5
 
 DROP_EIGHT_SAME:
@@ -69,17 +193,28 @@ TRIP_M_LOSS:
     activation_func: prelu
     loss_func: TripletMarginLoss
 
-Jack:
-  use_cuda: false
+MSE_LOSS:
+  experiment_name: mse_loss
   training_settings:
-    batch_size: 64
-    epochs: 20
+    epochs: 100
     early_stopping: true
+    es_epochs: 5
   model_settings:
     layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
     activation_func: prelu
-    loss_func: cross_entropy
+    loss_func: mse
 
+Jack:
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [512, 256]
+    dropout_val: 0.5
 
 Ishan1:
   experiment_name: sq_root_decrease_facenet
