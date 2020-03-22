@@ -126,7 +126,7 @@ def run_experiment(profile_name: str):
     # Save experiment results
     if config_data['save_results']:
         experiment_name = config_data['experiment_name'] + '_' + str(datetime.now())
-        experiment_path = os.path.join(RESULTS_PATH, experiment_name)
+        experiment_path = os.path.join(RESULTS_PATH, experiment_name + '.pickle')
         with open(experiment_path, 'wb') as f:
             pickle.dump(results_dict, f)
     
