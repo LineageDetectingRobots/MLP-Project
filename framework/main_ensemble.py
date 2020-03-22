@@ -11,7 +11,7 @@ from framework.utils.experiment_utils import get_model, check_network_name, get_
 from framework.config.config_reader import ConfigReader
 
 def high_score(scores):
-    # 4, test_size, 1, 2
+    # num_models, test_size, 1, 2
     result = torch.sum(scores, dim=0)
     # test_size, 1, 2
     result = torch.max(result, dim=2)[1]
@@ -60,7 +60,6 @@ def cascade_classifier(scores):
 
     return np.array(pred_targets)
 
-# TODO: weighted classifiers
 def get_ensemble(ensemble_name: str):
     # TODO: Add more ensemble methods
     if ensemble_name == "high_score":
