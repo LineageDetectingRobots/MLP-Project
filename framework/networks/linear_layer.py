@@ -22,10 +22,11 @@ def _get_loss_func(function_name: str):
     if function_name == 'cross_entropy':
         return nn.CrossEntropyLoss(reduction='mean')
 
-    elif function_name == 'mse':
-        return nn.MSELoss()
+    # elif function_name == 'mse':
+    #     return nn.MSELoss()
     
     elif function_name == 'nll':
+        # print()
         return nn.NLLLoss()
     
     # Cant use triplet margin loss as we dont provide an extra negative input
@@ -64,6 +65,9 @@ def _get_optimiser(optimiser_name: str):
         optimizer = optim.SGD
     elif optimiser_name == 'adam':
         optimizer = optim.Adam
+    # elif optimiser_name == 'Adadelta':
+    #     optimizer = optim.Adadelta( lr=1.0, rho=0.9, eps=1e-06, weight_decay=0)
+    
     else:
         raise RuntimeError(f'Unknown optimiser = {optimiser_name}')
     
@@ -140,7 +144,7 @@ class FullyConnectedLayer(nn.Module):
         out = self.dropout(x) if hasattr(self, 'dropout') else x
         out = self.linear(out)
         out = self.bn(out) if hasattr(self, 'bn') else out
-        out = self.activation_func(out) if hasattr(self, 'activation_func') else out
+            
         return out
 
 
@@ -160,8 +164,15 @@ class MLP(BaseNetwork):
         self.build_network()
         
         optimizer_type = network_settings['optimiser_type']
+        
         learning_rate = network_settings['learning_rate']
-        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
+        # print("got LR",learning_rate )
+        weight_decay = network_settings['weight_decay']
+        # print("got wd", weight_decay)
+        # self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
+
+        #  Adding weight_decay to check if it improves
+        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate,weight_decay=0.2)
     
     
     def build_network(self):
@@ -191,46 +202,46 @@ class MLP(BaseNetwork):
             out = layer(out)
         return F.softmax(out, dim=1)
 
-class MarginCosineProduct(BaseNetwork):
-    r"""Implement of large margin cosine distance: :
-    Args:
-        in_features: size of each input sample 
-        out_features: size of each output sample
-        s: norm of input feature
-        m: margin -> this is same as the m val used in arcface and sphereFace
-    """
+# class MarginCosineProduct(BaseNetwork):
+#     r"""Implement of large margin cosine distance: :
+#     Args:
+#         in_features: size of each input sample 
+#         out_features: size of each output sample
+#         s: norm of input feature
+#         m: margin -> this is same as the m val used in arcface and sphereFace
+#     """
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.40):
-        super(MarginCosineProduct, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.s = s
-        self.m = m
-        self.weight = Parameter(torch.Tensor(out_features, in_features))
-        nn.init.xavier_uniform_(self.weight)
-        #stdv = 1. / math.sqrt(self.weight.size(1))
-        #self.weight.data.uniform_(-stdv, stdv)
+#     def __init__(self, in_features, out_features, s=30.0, m=0.40):
+#         super(MarginCosineProduct, self).__init__()
+#         self.in_features = in_features
+#         self.out_features = out_features
+#         self.s = s
+#         self.m = m
+#         self.weight = Parameter(torch.Tensor(out_features, in_features))
+#         nn.init.xavier_uniform_(self.weight)
+#         #stdv = 1. / math.sqrt(self.weight.size(1))
+#         #self.weight.data.uniform_(-stdv, stdv)
 
-    def loss(self):
-        # --------------------------------loss function and optimizer-----------------------------
-        lossFunc = torch.nn.CrossEntropyLoss()
+#     def loss(self):
+#         # --------------------------------loss function and optimizer-----------------------------
+#         lossFunc = torch.nn.CrossEntropyLoss()
     
 
-    def forward(self, input, label):
-        cosine = cosine_sim(input, self.weight)
+#     def forward(self, input, label):
+#         cosine = cosine_sim(input, self.weight)
 
-        one_hot.scatter_(1, label.view(-1, 1), 1.0)
-        # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
-        output = self.s * (cosine - one_hot * self.m)
+#         one_hot.scatter_(1, label.view(-1, 1), 1.0)
+#         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
+#         output = self.s * (cosine - one_hot * self.m)
 
-        return output
+#         return output
 
-    def __repr__(self):
-        return self.__class__.__name__ + '(' \
-               + 'in_features=' + str(self.in_features) \
-               + ', out_features=' + str(self.out_features) \
-               + ', s=' + str(self.s) \
-               + ', m=' + str(self.m) + ')'
+#     def __repr__(self):
+#         return self.__class__.__name__ + '(' \
+#                + 'in_features=' + str(self.in_features) \
+#                + ', out_features=' + str(self.out_features) \
+#                + ', s=' + str(self.s) \
+#                + ', m=' + str(self.m) + ')'
 
 
 

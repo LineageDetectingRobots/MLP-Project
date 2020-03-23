@@ -2,6 +2,11 @@
 DEFAULT:
   use_cuda: true
   save_results: true
+  # Save the model at the end
+  save_model: false
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  # Used for files we will save
   experiment_name: default_experiment
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
@@ -10,6 +15,7 @@ DEFAULT:
     batch_size: 64
     epochs: 100
     early_stopping: true
+    checkpoint: 1
     # How many epochs of not increased validation acc. before we stop
     es_epochs: 5
   model_settings:
@@ -23,6 +29,7 @@ DEFAULT:
     dropout_val: 0.0
     optimiser_type: "adam"
     learning_rate: 0.001
+    weight_decay: 0
 
 FOUR_DEC:
   experiment_name: four_layer_dec_four
@@ -32,14 +39,31 @@ FOUR_DEC:
   model_settings:
     layer_config: [1024, 256, 64, 16]
 
-
 SIXTEEN_FIVE_TWELVE:
   experiment_name: sixteen_layer_five_twelve
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [512,512,512,512,512,512,512,512,512,512,512,512,512,512,512,512]
+    layer_config:
+      [
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+      ]
 
 EIGHT_FIVE_TWELVE:
   experiment_name: eight_layer_five_twelve
@@ -47,7 +71,7 @@ EIGHT_FIVE_TWELVE:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [512,512,512,512,512,512,512,512]
+    layer_config: [512, 512, 512, 512, 512, 512, 512, 512]
 
 FOUR_FIVE_TWELVE:
   experiment_name: four_layer_five_twelve
@@ -55,7 +79,7 @@ FOUR_FIVE_TWELVE:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [512,512,512,512]
+    layer_config: [512, 512, 512, 512]
 
 TWO_FIVE_TWELVE:
   experiment_name: two_layer_five_twelve
@@ -63,7 +87,7 @@ TWO_FIVE_TWELVE:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [512,512]
+    layer_config: [512, 512]
 
 ONE_FIVE_TWELVE:
   experiment_name: one_layer_dec_five_twelve
@@ -73,14 +97,13 @@ ONE_FIVE_TWELVE:
   model_settings:
     layer_config: [512]
 
-
 FOUR_ONE_TWO:
   experiment_name: four_layer_one_two
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [1024,1024,1024,1024]
+    layer_config: [1024, 1024, 1024, 1024]
 
 TWO_ONE_TWO:
   experiment_name: two_layer_one_two
@@ -88,7 +111,7 @@ TWO_ONE_TWO:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [1024,1024]
+    layer_config: [1024, 1024]
 
 ONE_ONE_TWO:
   experiment_name: one_layer_one_two
@@ -98,14 +121,13 @@ ONE_ONE_TWO:
   model_settings:
     layer_config: [1024]
 
-
 FOUR_TWO_FIVE:
   experiment_name: four_layer_two
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [256,256,256,256]
+    layer_config: [256, 256, 256, 256]
 
 TWO_TWO_FIVE:
   experiment_name: two_layer_two
@@ -113,7 +135,7 @@ TWO_TWO_FIVE:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face"
   model_settings:
-    layer_config: [256,256]
+    layer_config: [256, 256]
 
 ONE_TWO_FIVE:
   experiment_name: one_layer_two
@@ -146,8 +168,77 @@ ONE_LAYER_TWO_FOUR:
     layer_config: [2048]
     dropout_val: 0.5
 
+DROP_TWO_DEC_arc:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  experiment_name: half_layer_dec_arc
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
 
-DROP_BIG_THREE:
+DROP_TWO_DEC_vgg2:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "vgg_face2"
+  experiment_name: half_layer_dec_vgg2
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TWO_DEC_vgg:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "vgg_face"
+  experiment_name: half_layer_dec_vgg
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TWO_DEC_sphere:
+  use_cuda: false
+  save_results: true
+  # Save the model at the end
+  save_model: true
+  # Overwrites model if it is saved under the same experiment name
+  overwrite_model: false
+  data_settings:
+    network_name: "sphere_face"
+  experiment_name: half_layer_dec_sphere
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 256]
+    dropout_val: 0.5
+
+DROP_TRIPLE:
   experiment_name: drop_half
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
@@ -273,30 +364,128 @@ MSE_LOSS:
     loss_func: mse
 
 Jack:
-  use_cuda: true
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
   training_settings:
-    batch_size: 64
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
-    layer_config: [1024, 256, 4]
-    activation_func: prelu
+    layer_config: [512, 256]
+    dropout_val: 0.5
+
+Ishan1:
+  experiment_name: sq_root_decrease_facenet
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
+  training_settings:
+    batch_size: 128
+    epochs: 30
+    early_stopping: false
+    # es_epochs: 2
+  model_settings:
+    output_size: 2
+    layer_config: [1024, 512, 256, 16, 4, 2]
+    dropout_val: 0.5
+    activation_func: relu
     loss_func: cross_entropy
+    learning_rate: 0.01
+    weight_decay: 0.05
 
+Ishan2:
+  experiment_name: sq_root_decrease_arcface
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "arc_face"
+  training_settings:
+    batch_size: 64
+    epochs: 20
+    early_stopping: true
+    es_epochs: 2
+  model_settings:
+    output_size: 2
+    layer_config: [1024, 512, 256, 256, 16, 16, 4, 4]
+    activation_func: relu
+    loss_func: nll
+    learning_rate: 0.001
 
-Ishan:
+Ishan3:
   experiment_name: sq_root_decrease
   data_settings:
     # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
     network_name: "vgg_face2"
   training_settings:
-    batch_size: 32
-    epochs: 100
+    batch_size: 64
+    epochs: 20
     early_stopping: true
+    es_epochs: 2
+  model_settings:
+    output_size: 2
+    layer_config: [1024, 256, 16, 4, 2]
+    activation_func: prelu
+    loss_func: cross_entropy
+    learning_rate: 0.001
+
+Ishan-WD:
+  experiment_name: weight_decay
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "arc_face"
+  training_settings:
+    batch_size: 96
+    epochs: 50
+    early_stopping: true
+    # How many epochs of not increased validation acc. before we stop
     es_epochs: 5
   model_settings:
-    layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
+    layer_config: [1024, 512, 256, 256, 16, 16, 4, 4]
+    use_batch_norm: false
+    activation_func: lrelu
+    loss_func: cross_entropy
+    use_bias: true
+    dropout_val: 0.001
+    optimiser_type: "adam"
+    learning_rate: 0.005
+    # weight_decay: 0.001
+
+Ishan-faceNet:
+  experiment_name: weight_decay
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
+  training_settings:
+    batch_size: 64
+    epochs: 50
+    early_stopping: true
+    # How many epochs of not increased validation acc. before we stop
+    es_epochs: 5
+  model_settings:
+    layer_config: [220, 110, 55, 55, 28, 28, 14, 14, 7]
+    use_batch_norm: false
+    activation_func: lrelu
+    loss_func: cross_entropy
+    use_bias: true
+    # dropout_val: 0.001
+    optimiser_type: "sgd"
+    learning_rate: 0.05
+    weight_decay: 0.0001
+
+IshanShallow:
+  experiment_name: weight_decay_shallow
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face2"
+  training_settings:
+    batch_size: 256
+    epochs: 50
+    early_stopping: false
+    # How many epochs of not increased validation acc. before we stop
+    es_epochs: 5
+  model_settings:
+    layer_config: [220, 110, 55, 28, 14, 7]
+    use_batch_norm: false
     activation_func: prelu
     loss_func: nll
 
