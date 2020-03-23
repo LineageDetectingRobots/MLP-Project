@@ -164,15 +164,11 @@ class MLP(BaseNetwork):
         self.build_network()
         
         optimizer_type = network_settings['optimiser_type']
-        
         learning_rate = network_settings['learning_rate']
-        # print("got LR",learning_rate )
         weight_decay = network_settings['weight_decay']
-        # print("got wd", weight_decay)
-        # self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
 
         #  Adding weight_decay to check if it improves
-        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate, weight_decay)
+        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate, weight_decay=weight_decay)
     
     
     def build_network(self):
