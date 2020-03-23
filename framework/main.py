@@ -17,7 +17,8 @@ from framework.utils.experiment_utils import get_model, eval, get_datasets, chec
 
 
 
-def train(model, train_dataset, training_settings, validation_dataset = None):
+def train(model, train_dataset, config_data, validation_dataset = None):
+    training_settings = config_data['training_settings']
     # Create training dict
     train_dict = {}
 
@@ -65,6 +66,7 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
             if use_early_stopping:
                 if eval_dict['auc'] >= max_val_auc:
                     max_val_auc = eval_dict['auc']
+                    save_model(config_data, model)
                     es_count = 0
                 else:
                     es_count += 1
@@ -84,6 +86,13 @@ def train(model, train_dataset, training_settings, validation_dataset = None):
     train_dict['num_epochs'] = epoch
     progress.close()
     return train_dict
+
+
+def save_model(config_data: dict, model):
+    if config_data['save_model']:
+        model_name = os.path.join(MODEL_PATH, config_data['experiment_name'] + '.pt')
+        torch.save(model.state_dict(), model_name)
+
 
 def run_experiment(profile_name: str):
     # Get experiment settings
@@ -114,8 +123,7 @@ def run_experiment(profile_name: str):
     model = get_model(model_settings).to(device)
     
     # Train the model
-    training_settings = config_data['training_settings']
-    train_dict = train(model, train_dataset, training_settings, validation_dataset)
+    train_dict = train(model, train_dataset, config_data, validation_dataset)
     results_dict['training_dict'] = train_dict
 
     # Evaluate the model on test dataset
@@ -129,10 +137,6 @@ def run_experiment(profile_name: str):
         experiment_path = os.path.join(RESULTS_PATH, experiment_name + '.pickle')
         with open(experiment_path, 'wb') as f:
             pickle.dump(results_dict, f)
-    
-    if config_data['save_model']:
-        model_name = os.path.join(MODEL_PATH, config_data['experiment_name'] + '.pt')
-        torch.save(model.state_dict(), model_name)
 
     pprint(results_dict)
 
