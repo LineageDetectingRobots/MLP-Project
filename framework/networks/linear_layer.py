@@ -64,6 +64,9 @@ def _get_optimiser(optimiser_name: str):
         optimizer = optim.SGD
     elif optimiser_name == 'adam':
         optimizer = optim.Adam
+    # elif optimiser_name == 'Adadelta':
+    #     optimizer = optim.Adadelta( lr=1.0, rho=0.9, eps=1e-06, weight_decay=0)
+    
     else:
         raise RuntimeError(f'Unknown optimiser = {optimiser_name}')
     
@@ -160,8 +163,15 @@ class MLP(BaseNetwork):
         self.build_network()
         
         optimizer_type = network_settings['optimiser_type']
+        
         learning_rate = network_settings['learning_rate']
-        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
+        # print("got LR",learning_rate )
+        weight_decay = network_settings['weight_decay']
+        # print("got wd", weight_decay)
+        # self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
+
+        #  Adding weight_decay to check if it improves
+        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate,weight_decay=0.2)
     
     
     def build_network(self):
