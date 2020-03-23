@@ -60,6 +60,42 @@ def cascade_classifier(scores):
 
     return np.array(pred_targets)
 
+def threshold_majority_vote(scores):
+    scores = scores.cpu().numpy()
+    threshold = 0.85
+    pred_targets = []
+    n_models = scores.shape[0]
+    # Iterate over batch size
+    for i in range(scores.shape[1]):
+        # NOTE: Assuming order best model to worst model
+        # Iterate over models
+        votes = []
+        for j in range(scores.shape[0]):
+            pred_score = scores[j, i]
+            if pred_score[0][1] > threshold:
+                votes.append(1)
+            if pred_score[0][0] > threshold:
+                votes.append(0)
+        
+        if votes == []:
+            # TODO: maj vote of scores
+            model_scores = np.array([scores[j, i] for j in range(scores.shape[0])])
+            result = np.argmax(model_scores, axis = 2)
+            result = np.sum(result)
+            result = result/n_models
+            
+        else:
+            result = sum(votes)/len(votes)
+
+        if result < 0.5:
+            result = 0
+        elif result == 0.5:
+            result = np.argmax(scores[0, i][0])
+        else:
+            result = 1
+        pred_targets.append(result)
+    return pred_targets
+
 def get_ensemble(ensemble_name: str):
     # TODO: Add more ensemble methods
     if ensemble_name == "high_score":
@@ -68,6 +104,8 @@ def get_ensemble(ensemble_name: str):
         return majority_vote
     elif ensemble_name == 'cascade':
         return cascade_classifier
+    elif ensemble_name == 'thresh_majority_vote':
+        return threshold_majority_vote
     else:
         raise RuntimeError('Unkown ensemble name {}'.format(ensemble_name))
 
@@ -157,7 +195,7 @@ def run_experiment(ensemble_name: str, model_profiles: List[str]):
 if __name__ == '__main__':
     # NOTE This should be a list of profiles you want to use. The models are expected to be saved
     model_profiles = ['DROP_TWO_DEC_arc', 'DROP_TWO_DEC_vgg2', 'DROP_TWO_DEC_vgg', 'DROP_TWO_DEC_sphere']
-    ensemble_name = 'majority_vote'
+    ensemble_name = 'thresh_majority_vote'
     if model_profiles == []:
         raise RuntimeError('Please fill in model profiles')
 

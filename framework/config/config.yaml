@@ -193,7 +193,7 @@ DROP_TWO_DEC_vgg2:
   overwrite_model: false
   data_settings:
     network_name: "vgg_face2"
-  experiment_name: half_layer_dec_vgg2_test
+  experiment_name: half_layer_dec_vgg2
   training_settings:
     epochs: 100
     early_stopping: true
