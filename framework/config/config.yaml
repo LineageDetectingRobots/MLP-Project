@@ -26,59 +26,92 @@ DEFAULT:
 
 FOUR_DEC:
   experiment_name: four_layer_dec_four
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [1024, 256, 64, 16]
 
 
 SIXTEEN_FIVE_TWELVE:
   experiment_name: sixteen_layer_five_twelve
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [512,512,512,512,512,512,512,512,512,512,512,512,512,512,512,512]
 
 EIGHT_FIVE_TWELVE:
   experiment_name: eight_layer_five_twelve
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [512,512,512,512,512,512,512,512]
 
 FOUR_FIVE_TWELVE:
   experiment_name: four_layer_five_twelve
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [512,512,512,512]
 
 TWO_FIVE_TWELVE:
   experiment_name: two_layer_five_twelve
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [512,512]
 
 ONE_FIVE_TWELVE:
   experiment_name: one_layer_dec_five_twelve
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [512]
 
 
 FOUR_ONE_TWO:
   experiment_name: four_layer_one_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [1024,1024,1024,1024]
 
 TWO_ONE_TWO:
   experiment_name: two_layer_one_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [1024,1024]
 
 ONE_ONE_TWO:
   experiment_name: one_layer_one_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [1024]
 
 
 FOUR_TWO_FIVE:
   experiment_name: four_layer_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [256,256,256,256]
 
 TWO_TWO_FIVE:
   experiment_name: two_layer_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   model_settings:
     layer_config: [256,256]
 
@@ -89,36 +122,36 @@ ONE_TWO_FIVE:
 
 TWO_DEC:
   experiment_name: quarter_layer_dec
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
   training_settings:
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
     layer_config: [1024, 256]
-    activation_func: prelu
+    dropout_val: 0.5
 
-DROP_TWO_DEC:
-  experiment_name: half_layer_dec
+ONE_LAYER_TWO_FOUR:
+  experiment_name: one_layer_two_four
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
   training_settings:
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
-    layer_config: [1024, 256]
+    layer_config: [2048]
     dropout_val: 0.5
-  
-DROP_HALF_FIVE:
-  experiment_name: drop_half
-  training_settings:
-    epochs: 100
-    early_stopping: true
-    es_epochs: 5
-  model_settings:
-    layer_config: [1024, 512]
-    dropout_val: 0.5
+
 
 DROP_BIG_THREE:
   experiment_name: drop_half
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   training_settings:
     epochs: 100
     early_stopping: true
@@ -129,24 +162,76 @@ DROP_BIG_THREE:
 
 DROP_EIGHTH:
   experiment_name: drop_eighth
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
   training_settings:
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
     layer_config: [1024, 128]
+    dropout_val: 0.5
+
+DROP_SIXTEENTH_NET:
+  experiment_name: drop_sixteenth
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 64]
+    dropout_val: 0.5
+
+DROP_FIVE_SIXTEENTH:
+  experiment_name: drop_five_sixteenth
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [512, 64]
+    dropout_val: 0.5
+
+
+
+DROP_THIRTY:
+  experiment_name: drop_thirty
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 32]
+    dropout_val: 0.5
   
 INCREASE_TWO_DROP:
   experiment_name: increase_two_drop
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
   training_settings:
     epochs: 100
     early_stopping: true
     es_epochs: 5
   model_settings:
     layer_config: [2048, 512]
+    dropout_val: 0.5
 
 DROP_DOUBLE_HALF:
   experiment_name: drop_double_half
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
   training_settings:
     epochs: 100
     early_stopping: true
@@ -214,3 +299,152 @@ Ishan:
     layer_config: [1024, 1024, 256, 256, 16, 16, 4, 4]
     activation_func: prelu
     loss_func: nll
+
+# ================================== Best Architecture ==========================================
+DROP_HALF_FIVE:
+  experiment_name: drop_half
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "arc_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512]
+    dropout_val: 0.5
+
+DROP_SIXTEENTH:
+  experiment_name: drop_sixteenth
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 64]
+    dropout_val: 0.5
+
+ONE_LAYER_TWO_FOUR:
+  experiment_name: one_layer_two_four
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+
+# ================================== Loss Function Tests =========================================
+MSE_DROP_HALF_FIVE:
+  experiment_name: mse_drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512]
+    dropout_val: 0.5
+    loss_func: mse
+
+NLL_DROP_SIXTEENTH:
+  experiment_name: nll_drop_sixteenth
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "vgg_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 64]
+    dropout_val: 0.5
+    loss_func: nll
+
+  
+NLL_DROP_HALF_FIVE:
+  experiment_name: nll_drop_half
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [1024, 512]
+    dropout_val: 0.5
+    loss_func: nll
+
+NLL_SF:
+  experiment_name: one_layer_two_four
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+    loss_func: nll
+
+# ================================== Activation Function Tests ====================================
+PRELU_TWO:
+  experiment_name: prelu_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+    activation_func: prelu
+  
+LRELU_TWO:
+  experiment_name: lrelu_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+    activation_func: lrelu
+
+ELU_TWO:
+  experiment_name: elu_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+    activation_func: elu
+
+SOFTPLUS_TWO:
+  experiment_name: softplus_two
+  data_settings:
+    # Network name choices: 'arc_face', 'vgg_face', 'sphere_face', 'vgg_face2'
+    network_name: "sphere_face"
+  training_settings:
+    epochs: 100
+    early_stopping: true
+    es_epochs: 5
+  model_settings:
+    layer_config: [2048]
+    dropout_val: 0.5
+    activation_func: softplus

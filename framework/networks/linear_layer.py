@@ -45,7 +45,8 @@ def _get_activation_func(function_name: str):
             return nn.LeakyReLU()
         
     elif function_name == 'prelu':
-        return nn.PReLU(num_parameters=1, init=0.25)
+        # return nn.PReLU(num_parameters=1, init=0.25)  --- original values
+        return nn.PReLU(num_parameters=1, init=0.3)
     
     elif function_name == 'lrelu':
         return nn.LeakyReLU()
