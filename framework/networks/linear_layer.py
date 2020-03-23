@@ -143,7 +143,7 @@ class FullyConnectedLayer(nn.Module):
         out = self.dropout(x) if hasattr(self, 'dropout') else x
         out = self.linear(out)
         out = self.bn(out) if hasattr(self, 'bn') else out
-            
+        out = self.activation_func(out) if hasattr(self, 'activation_func') else out    
         return out
 
 
@@ -171,7 +171,7 @@ class MLP(BaseNetwork):
         # self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate)
 
         #  Adding weight_decay to check if it improves
-        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate,weight_decay=0.2)
+        self.optimizer = _get_optimiser(optimizer_type)(self.parameters(), learning_rate, weight_decay)
     
     
     def build_network(self):
