@@ -54,6 +54,16 @@ class FIW(data.Dataset):
         fam_list = [father, mother, child]
         fam_vec = torch.stack(fam_list).view(-1)
         return fam_vec
+    
+    def get_father_mother_child(self, idx):
+        father_path = self.dataset.iloc[idx].F
+        mother_path = self.dataset.iloc[idx].M
+        child_path = self.dataset.iloc[idx].C
+
+        father = (self.mappings[father_path])
+        mother = (self.mappings[mother_path])
+        child = (self.mappings[child_path])
+        return [father, mother, child]
 
     def __getitem__(self, idx):
         return self._get_tripair(idx), self._get_label(idx)
